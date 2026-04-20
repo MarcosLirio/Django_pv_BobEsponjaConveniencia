@@ -1,0 +1,109 @@
+<div class="container-fluid">
+    <form action="" id="product-form">
+        <input type="hidden" name="id" value="{% if product.pk %}{{product.pk}}{% endif %}">
+        <div class="form-group mb-3">
+            <label for="code" class="control-label">Código / Código de Barras</label>
+            <input type="text" name="code" id="code" class="form-control form-control-sm rounded-0" value="{% if product.code %}{{product.code}}{% endif %}" required>
+            <small class="text-muted">Informe aqui o codigo digitavel ou o numero lido pelo scanner do produto.</small>
+        </div>
+        <div class="form-group mb-3">
+            <label for="category_id" class="control-label">Categoria</label>
+            <select name="category_id" id="category_id" class="form-select form-select-sm rounded-0" required>
+            {% if not product.category_id %}
+            <option value="" disabled selected></option>
+            {% else %}
+            <option value="" disabled></option>
+            {% endif %}
+            {% for category in categories %}
+                {% if product.category_id == category.id %}
+                <option value="{{ category.id }}" selected>{{ category.name }}</option>
+                {% else %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+        </div>
+        <div class="form-group mb-3">
+            <label for="name" class="control-label">Nome do Produto</label>
+            <input type="text" name="name" id="name" class="form-control form-control-sm rounded-0" value="{% if product.name %}{{product.name}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="description" class="control-label">Descrição</label>
+            <textarea rows="5" name="description" id="description" class="form-control form-control-sm rounded-0" required>{% if product.description %}{{product.description}}{% endif %}</textarea>
+        </div>
+        <div class="form-group mb-3">
+            <label for="price" class="control-label">Preço</label>
+            <input type="text" name="price" id="price" class="form-control form-control-sm rounded-0" value="{% if product.price %}{{product.price}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="quantity" class="control-label">Quantidade em Estoque</label>
+            <input type="number" min="0" name="quantity" id="quantity" class="form-control form-control-sm rounded-0" value="{% if product.quantity is not None %}{{product.quantity}}{% else %}0{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="status" class="control-label">Status</label>
+            <select name="status" id="status" class="form-select form-select-sm rounded-0" required>
+            {% if product.status and product.status == 1 %}
+            <option value="1" selected>Ativo</option>
+            {% else %}
+            <option value="1">Ativo</option>
+            {% endif %}
+
+            {% if product.status and product.status == 0 %}
+            <option value="0" selected>Inativo</option>
+            {% else %}
+            <option value="0">Inativo</option>
+            {% endif %}
+        </select>
+        </div>
+    </form>
+</div>
+<script>
+    $(function() {
+        $('#product-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url: "{% url 'save-product-page' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-danger err-msg")
+                        location.reload()
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.text(resp.msg)
+                    } else {
+                        el.text("Ocorreu um erro", 'error');
+                        end_loader();
+                        console.err(resp)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal").scrollTop(0);
+                    end_loader()
+                }
+            })
+        })
+    })
+</script>

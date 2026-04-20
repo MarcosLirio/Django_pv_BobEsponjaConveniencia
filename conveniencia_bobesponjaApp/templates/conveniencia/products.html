@@ -1,0 +1,156 @@
+{% extends "conveniencia/base.html" %} 
+{% block pageContent %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">Lista de Produtos</h4>
+            <div class="text-start">
+                <button class="btn btn-primary bg-gradient btn-sm rounded-0" id="create_new"><i class="mdi mdi-plus"></i><span> Adicionar Novo</span></button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-3 px-3">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Buscar Produto</label>
+                <input type="text" class="form-control form-control-sm" id="search" name="search" 
+                       value="{{ search_query }}" placeholder="Nome, código ou descrição...">
+            </div>
+            <div class="col-md-3">
+                <label for="category" class="form-label">Categoria</label>
+                <select class="form-select form-select-sm" id="category" name="category">
+                    <option value="">Todas as categorias</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select form-select-sm" id="status" name="status">
+                    <option value="">Todos</option>
+                    <option value="1" {% if status_filter == "1" %}selected{% endif %}>Ativo</option>
+                    <option value="0" {% if status_filter == "0" %}selected{% endif %}>Inativo</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="mdi mdi-magnify"></i> Buscar
+                </button>
+                <a href="{% url 'product-page' %}" class="btn btn-sm btn-secondary">
+                    <i class="mdi mdi-refresh"></i> Limpar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <colgroup>
+                    <col width="5%">
+                    <col width="18%">
+                    <col width="18%">
+                    <col width="25%">
+                    <col width="10%">
+                    <col width="12%">
+                    <col width="12%">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th class="text-center py-1">#</th>
+                        <th class="text-center py-1">Categoria</th>
+                        <th class="text-center py-1">Produto</th>
+                        <th class="text-center py-1">Descrição</th>
+                        <th class="text-center py-1">Qtd</th>
+                        <th class="text-center py-1">Status</th>
+                        <th class="text-center py-1">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td class="px-2 py-1 text-center">{{ product.id }}</td>
+                        <td class="px-2 py-1 text-start">{{ product.category_id }}</td>
+                        <td class="px-2 py-1 text-start">{{ product.code }} - {{ product.name }}</td>
+                        <td class="px-2 py-1 text-start">{{ product.description }}</td>
+                        <td class="px-2 py-1 text-center">{{ product.quantity }}</td>
+                        <td class="px-2 py-1 text-center">
+                            {% if product.status == 1 %}
+                            <span class="badge bg-primary rounded-pill px-3">Ativo</span> 
+                            {% else %}
+                            <span class="badge bg-secondary rounded-pill px-3">Inativo</span> 
+                            {% endif %}
+                        </td>
+                        <td class="px-2 py-1 text-center">
+                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light mdc-ripple-upgraded edit-data" type="button" data-id="{{ product.pk }}" title="Editar">
+                                <i class="material-icons mdc-button__icon">edit</i>
+                            </button>
+                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--danger mdc-ripple-upgraded delete-data" type="button" data-id="{{ product.pk }}" title="Deletar">
+                                <i class="material-icons mdc-button__icon">deleteoutline</i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock pageContent %}
+{% block ScriptBlock %}
+<script>
+    $(function() {
+        $('#create_new').click(function() {
+            uni_modal("Adicionar Novo Produto", "{% url 'manage_product-page' %}")
+        })
+        $('.edit-data').click(function() {
+            uni_modal("Editar Produto", "{% url 'manage_product-page' %}?id=" + $(this).attr('data-id'))
+        })
+        $('.delete-data').click(function() {
+            _conf("Você tem certeza de que deseja deletar este produto?", "delete_product", [$(this).attr('data-id')])
+        })
+
+        $('#uni_modal').on('shown.bs.modal', function() {
+            $('#category_id').select2({
+                placeholder: "Por favor, selecione a categoria aqui",
+                width: '100%',
+                dropdownParent: $('#uni_modal')
+            })
+        })
+    })
+
+    function delete_product($id) {
+        start_loader();
+        $.ajax({
+            headers: {
+                "X-CSRFToken": '{{csrf_token}}'
+            },
+            url: "{% url 'delete-product' %}",
+            method: "POST",
+            data: {
+                id: $id
+            },
+            dataType: "json",
+            error: err => {
+                console.log(err)
+                alert_toast("Ocorreu um erro.", 'error');
+                end_loader();
+            },
+            success: function(resp) {
+                if (typeof resp == 'object' && resp.status == 'success') {
+                    location.reload();
+                } else {
+                    alert_toast("Ocorreu um erro.", 'error');
+                    end_loader();
+                }
+            }
+        })
+    }
+</script>
+{% endblock ScriptBlock %}

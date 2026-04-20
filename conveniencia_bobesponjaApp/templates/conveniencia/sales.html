@@ -1,0 +1,158 @@
+{% extends "conveniencia/base.html" %} 
+{% load humanize %} 
+{% block pageContent %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">Lista de Vendas</h4>
+        </div>
+    </div>
+</div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-3 px-3">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label for="data_inicio" class="form-label">Data Início</label>
+                <input type="date" id="data_inicio" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-3">
+                <label for="data_fim" class="form-label">Data Fim</label>
+                <input type="date" id="data_fim" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-6 d-flex align-items-end gap-2">
+                <button class="btn btn-sm btn-primary" id="btn-limpar-filtros">Limpar Filtros</button>
+                <button class="btn btn-sm btn-success" id="btn-download-pdf">
+                    <i class="mdi mdi-file-pdf-box"></i> Baixar Relatório PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <colgroup>
+                    <col width="5%">
+                    <col width="16%">
+                    <col width="16%">
+                    <col width="12%">
+                    <col width="16%">
+                    <col width="12%">
+                    <col width="10%">
+                    <col width="13%">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th class="text-center py-1">#</th>
+                        <th class="text-center py-1">Data/Hora</th>
+                        <th class="text-center py-1">Código Trans.</th>
+                        <th class="text-center py-1">Usuário</th>
+                        <th class="text-center py-1">Total</th>
+                        <th class="text-center py-1">Imposto Incluso</th>
+                        <th class="text-center py-1">Itens</th>
+                        <th class="text-center py-1">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sale_data %}
+                    <tr>
+                        <td class="px-2 py-1 text-center">{{ sale.id }}</td>
+                        <td class="px-2 py-1 text-start">{{ sale.date_added|date:'Y-m-d H:i' }}</td>
+                        <td class="px-2 py-1 text-start">{{ sale.code }}</td>
+                        <td class="px-2 py-1 text-center">{{ sale.cashier }}</td>
+                        <td class="px-2 py-1 text-end">{{ sale.grand_total|intcomma }}</td>
+                        <td class="px-2 py-1 text-end">({{ sale.tax }}%) {{ sale.tax_amount|intcomma:2 }}</td>
+                        <td class="px-2 py-1 text-center">{{ sale.item_count|intcomma }}</td>
+                        <td class="px-2 py-1 text-center">
+                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light mdc-ripple-upgraded view-data" type="button" data-id="{{ sale.id }}" title="Ver Recibo">
+                                <i class="material-icons mdc-button__icon">receipt</i>
+                            </button>
+                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--danger mdc-ripple-upgraded delete-data" type="button" data-id="{{ sale.id }}" data-code="{{ sale.code }}" title="Excluir">
+                                <i class="material-icons mdc-button__icon">deleteoutline</i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock pageContent %} 
+{% block ScriptBlock %}
+<script>
+    $(function() {
+        // Load saved dates from localStorage if available
+        const savedDataInicio = localStorage.getItem('sales_data_inicio');
+        const savedDataFim = localStorage.getItem('sales_data_fim');
+        
+        if (savedDataInicio) $('#data_inicio').val(savedDataInicio);
+        if (savedDataFim) $('#data_fim').val(savedDataFim);
+
+        $('.view-data').click(function() {
+            uni_modal("Recibo da Transação", "{% url 'receipt-modal' %}?id=" + $(this).attr('data-id'))
+        })
+        
+        $('.delete-data').click(function() {
+            _conf("Tem certeza de que deseja excluir o registro da transação <b>" + $(this).attr('data-code') + "</b>?", "delete_sale", [$(this).attr('data-id')])
+        })
+        
+        $('#btn-download-pdf').click(function() {
+            const dataInicio = $('#data_inicio').val();
+            const dataFim = $('#data_fim').val();
+            
+            // Save dates to localStorage
+            if (dataInicio) localStorage.setItem('sales_data_inicio', dataInicio);
+            if (dataFim) localStorage.setItem('sales_data_fim', dataFim);
+            
+            let url = "{% url 'generate-sales-report' %}";
+            if (dataInicio || dataFim) {
+                url += "?";
+                if (dataInicio) url += "data_inicio=" + dataInicio;
+                if (dataInicio && dataFim) url += "&";
+                if (dataFim) url += "data_fim=" + dataFim;
+            }
+            
+            window.location.href = url;
+        })
+        
+        $('#btn-limpar-filtros').click(function() {
+            $('#data_inicio').val('');
+            $('#data_fim').val('');
+            localStorage.removeItem('sales_data_inicio');
+            localStorage.removeItem('sales_data_fim');
+            location.reload();
+        })
+    })
+
+    function delete_sale($id) {
+        start_loader();
+        $.ajax({
+            headers: {
+                "X-CSRFToken": '{{csrf_token}}'
+            },
+            url: "{% url 'delete-sale' %}",
+            method: "POST",
+            data: {
+                id: $id
+            },
+            dataType: "json",
+            error: err => {
+                console.log(err)
+                alert_toast("Ocorreu um erro.", 'error');
+                end_loader();
+            },
+            success: function(resp) {
+                if (typeof resp == 'object' && resp.status == 'success') {
+                    location.reload();
+                } else {
+                    alert_toast("Ocorreu um erro.", 'error');
+                    end_loader();
+                }
+            }
+        })
+    }
+</script>
+{% endblock ScriptBlock %}
+

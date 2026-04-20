@@ -1,0 +1,484 @@
+{% extends "conveniencia/base.html" %} {% block pageContent %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">Sistema de Vendas</h4>
+        </div>
+    </div>
+</div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card">
+        <form action="" id="pos-form">
+            <fieldset>
+                <legend>Adicionar Produtos</legend>
+                <div id="pos-feedback" class="alert d-none" role="alert"></div>
+                <div class="row align-items-end">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <div class="form-group mb-3">
+                            <label for="barcode-input">Entrada Rápida do Caixa</label>
+                            <input type="text" id="barcode-input" class="form-control form-control-sm" list="product-quick-search" placeholder="Leia o codigo de barras ou digite codigo/nome" autocomplete="off">
+                            <datalist id="product-quick-search">
+                                {% for product in products %}
+                                    <option value="{{ product.code }}">{{ product.name }}</option>
+                                    <option value="{{ product.name }}">{{ product.code }}</option>
+                                {% endfor %}
+                            </datalist>
+                            <small class="text-muted">Aceita leitor, codigo digitado ou nome do produto. Tecla F8 devolve o foco para esta entrada.</small>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-12">
+                        <div class="form-group mb-3">
+                            <label for="barcode-qty">Quantidade</label>
+                            <input type="number" class="form-control form-control-sm text-center" min="1" step="1" id="barcode-qty" value="1">
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12">
+                        <div class="form-group mb-3">
+                            <button class="btn btn-outline-light btn-sm bg-dark border rounded-0 text-start w-100" type="button" id="barcode-add"><i class="mdi mdi-barcode-scan"></i> Buscar e Adicionar</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row align-items-end">
+                    <div class="col-lg-8 col-md-7 col-sm-12">
+                        <div class="form-group mb-3">
+                            <label for="product-id">Selecionar Produto Manualmente</label>
+                            <select id="product-id" class="form-select form-select-sm">
+                                <option value="" disabled selected></option>
+                                {% for product in products %}
+                                    <option value="{{ product.pk }}">{{ product }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-3 col-sm-12">
+                        <div class="form-group mb-3">
+                            <label for="product-qty">Quantidade</label>
+                            <input type="number" class="form-control form-control-sm text-center" min="1" step="1" id="product-qty" value="1">
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-12">
+                        <div class="form-group mb-3">
+                            <button class="btn btn-light btn-sm bg-gradient border rounded-0 text-start w-100" type="button" id="add_item"><i class="mdi mdi-plus"></i> Adicionar</button>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <div class="d-flex w-100" id="POS-field">
+                    <div class="col-8 bg-gradient bg-light border h-100">
+                        <table class="table table-bordered">
+                            <colgroup>
+                                <col width="5%">
+                                <col width="15%">
+                                <col width="40%">
+                                <col width="20%">
+                                <col width="20%">
+                            </colgroup>
+                            <thead>
+                                <tr class="bg-dark bg-gradient bg-opacity-50 text-light">
+                                    <th class="py-1 px-2 text-center  text-light"></th>
+                                    <th class="py-1 px-2 text-center  text-light">QTD</th>
+                                    <th class="py-1 px-2 text-center  text-light">Produto</th>
+                                    <th class="py-1 px-2 text-center  text-light">Preço</th>
+                                    <th class="py-1 px-2 text-center  text-light">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-4 bg-gradient bg-dark bg-opacity-50 border h-100">
+                        <div class="col-12 py-4 px-2">
+                            <dl>
+                                <dt class="h4 fw-bold text-light">Subtotal</dt>
+                                <dd class="text-end py-1 px-2 rounded-0 bg-light">
+                                    <input type="hidden" name="sub_total" value="0">
+                                    <span class="h3 fw-bold" id="sub_total">0.00</span>
+                                </dd>
+                                <dt class="h4 fw-bold text-light">Imposto Inclusivo (%)</dt>
+                                <dd>
+                                    <input type="number" class="form-control form-control-lg rounded-0 text-end" step="any" min="0" max="100" name="tax" value="0">
+                                </dd>
+                                <dt class="h4 fw-bold text-light">Valor do Imposto</dt>
+                                <dd class="text-end py-1 px-2 rounded-0 bg-light">
+                                    <input type="hidden" name="tax_amount" value="0">
+                                    <span class="h3 fw-bold" id="tax_amount">0.00</span>
+                                </dd>
+                                <dt class="h4 fw-bold text-light">Total Geral</dt>
+                                <dd class="text-end py-1 px-2 rounded-0 bg-light">
+                                    <input type="hidden" name="grand_total" value="0">
+                                    <input type="hidden" name="tendered_amount" value="0">
+                                    <input type="hidden" name="amount_change" value="0">
+                                    <span class="h3 fw-bold" id="grand_total">0.00</span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <div class="row">
+                <div class="col-md-12 text-end">
+                    <button class="btn btn-primary btn-sm rounded-0" type="button" id="check_out"><i class="mdi mdi-save"></i> Finalizar Compra</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<noscript id="item-clone">
+    <tr>
+        <td class="px-2 py-1 text-center">
+            <button class="btn btn-sm btn-outline-danger rounded-0 rem-item" type="button"><i class="mdi mdi-close"></i></button>
+        </td>
+        <td class="px-2 py-1">
+            <input type="hidden" name="product_id[]">
+            <input type="hidden" name="price[]">
+            <input type="number" name="qty[]" min="0" class="form-control form-control-sm rounded-0 text-center">
+        </td>
+        <td class="px-2 py-1 product_name text-start"></td>
+        <td class="px-2 py-1 product_price text-end"></td>
+        <td class="px-2 py-1 product_total text-end"></td>
+    </tr>
+</noscript> {% endblock pageContent %} {% block ScriptBlock %}
+<script>
+    var product_json = {{ product_json|safe }};
+    if (!Array.isArray(product_json)) {
+        product_json = [];
+    }
+    var prod_arr = {}
+    var prod_code_arr = {}
+    var product_list = []
+
+    function normalizeBarcode(value) {
+        return String(value || '').replace(/\s+/g, '').trim();
+    }
+
+    function normalizeSearchTerm(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    product_json.forEach(prod => {
+        prod_arr[String(prod.id)] = prod
+        product_list.push(prod)
+        var normalizedCode = normalizeBarcode(prod.code)
+        if (normalizedCode !== '') {
+            prod_code_arr[normalizedCode] = prod
+        }
+    })
+
+    function showPosMessage(message, type) {
+        var feedback = $('#pos-feedback')
+        var alertType = type || 'info'
+        feedback.removeClass('d-none alert-success alert-danger alert-info alert-warning')
+        feedback.addClass('alert-' + alertType).text(message)
+        if (feedback.data('timer')) {
+            clearTimeout(feedback.data('timer'))
+        }
+        if (alertType !== 'danger') {
+            feedback.data('timer', setTimeout(function() {
+                feedback.addClass('d-none').removeClass('alert-' + alertType).text('')
+            }, 2500))
+        }
+    }
+
+    function focusBarcodeField(shouldSelect) {
+        var barcodeInput = $('#barcode-input')
+        if (!barcodeInput.length || $('#uni_modal').hasClass('show')) {
+            return
+        }
+        barcodeInput.trigger('focus')
+        if (shouldSelect !== false) {
+            barcodeInput.select()
+        }
+    }
+
+    function canStealFocus(target) {
+        return !$(target).is('#barcode-input, #barcode-qty, #product-id, #product-qty, [name="tax"], [name="qty[]"], textarea, select, [contenteditable="true"]')
+    }
+
+    function refocusForScanner(target) {
+        if (canStealFocus(target)) {
+            setTimeout(function() {
+                focusBarcodeField(false)
+            }, 0)
+        }
+    }
+
+    function getRequestedQuantity(selector) {
+        var qty = parseInt($(selector).val(), 10)
+        if (isNaN(qty) || qty <= 0) {
+            return 1
+        }
+        return qty
+    }
+
+    function findProductByQuickEntry(rawValue) {
+        var normalizedBarcode = normalizeBarcode(rawValue)
+        var normalizedSearch = normalizeSearchTerm(rawValue)
+
+        if (!normalizedBarcode && !normalizedSearch) {
+            return {
+                product: null,
+                message: 'Informe ou leia um codigo/nome para continuar.',
+                type: 'danger'
+            }
+        }
+
+        if (normalizedBarcode && prod_code_arr[normalizedBarcode]) {
+            return { product: prod_code_arr[normalizedBarcode] }
+        }
+
+        var exactNameMatch = product_list.find(function(product) {
+            return normalizeSearchTerm(product.name) === normalizedSearch
+        })
+        if (exactNameMatch) {
+            return { product: exactNameMatch }
+        }
+
+        var partialMatches = product_list.filter(function(product) {
+            var productName = normalizeSearchTerm(product.name)
+            var productCode = normalizeBarcode(product.code)
+            return productName.indexOf(normalizedSearch) >= 0 || (normalizedBarcode && productCode.indexOf(normalizedBarcode) >= 0)
+        })
+
+        if (partialMatches.length === 1) {
+            return { product: partialMatches[0] }
+        }
+
+        if (partialMatches.length > 1) {
+            return {
+                product: null,
+                message: 'Mais de um produto encontrado. Continue digitando ou use o seletor manual.',
+                type: 'warning'
+            }
+        }
+
+        return {
+            product: null,
+            message: 'Nenhum produto encontrado para o codigo ou nome informado.',
+            type: 'danger'
+        }
+    }
+
+    function bindRowEvents(tr, data) {
+        tr.find('[name="qty[]"]').on('input keypress keyup keydown', function() {
+            var currentQty = parseInt($(this).val(), 10)
+            if (isNaN(currentQty) || currentQty <= 0) {
+                $(this).val(1)
+                currentQty = 1
+            }
+            if (data.quantity >= 0 && currentQty > data.quantity) {
+                $(this).val(data.quantity)
+                showPosMessage('Quantidade ajustada ao estoque disponivel para ' + data.name + '.', 'warning')
+            }
+            calc()
+        })
+        tr.find('.rem-item').click(function() {
+            if (confirm('Tem certeza de que deseja remover o produto ' + data.name + ' da lista?') == true) {
+                tr.remove()
+                calc()
+                focusBarcodeField()
+            }
+        })
+    }
+
+    function addProductToOrder(data, qty) {
+        if (!data) {
+            showPosMessage('Produto nao encontrado para o codigo informado.', 'danger')
+            return false
+        }
+
+        qty = parseInt(qty, 10)
+        if (isNaN(qty) || qty <= 0) {
+            qty = 1
+        }
+
+        var availableQty = parseInt(data.quantity, 10)
+        if (!isNaN(availableQty) && availableQty <= 0) {
+            showPosMessage('O produto ' + data.name + ' esta sem estoque.', 'danger')
+            return false
+        }
+
+        var existingRow = $('#POS-field table tbody input[name="product_id[]"][value="' + data.id + '"]').closest('tr')
+        if (existingRow.length > 0) {
+            var qtyInput = existingRow.find('[name="qty[]"]')
+            var currentQty = parseInt(qtyInput.val(), 10)
+            var newQty = (isNaN(currentQty) ? 0 : currentQty) + qty
+
+            if (!isNaN(availableQty) && newQty > availableQty) {
+                showPosMessage('Estoque insuficiente para ' + data.name + '. Disponivel: ' + availableQty + '.', 'danger')
+                return false
+            }
+
+            qtyInput.val(newQty)
+            calc()
+            showPosMessage(data.name + ' atualizado no carrinho.', 'success')
+            return true
+        }
+
+        if (!isNaN(availableQty) && qty > availableQty) {
+            showPosMessage('Estoque insuficiente para ' + data.name + '. Disponivel: ' + availableQty + '.', 'danger')
+            return false
+        }
+
+        var tr = $($('noscript#item-clone').html()).clone()
+        tr.find('[name="qty[]"]').val(qty)
+        tr.find('[name="product_id[]"]').val(data.id)
+        tr.find('[name="price[]"]').val(data.price)
+        tr.find('.product_name').html('<div>' + data.name + '</div><small class="text-muted">Cod. ' + data.code + '</small>')
+        tr.find('.product_price').text(parseFloat(data.price).toLocaleString('pt-BR'))
+        tr.find('.product_total').text(parseFloat(data.price * qty).toLocaleString('pt-BR'))
+        $('#POS-field table tbody').append(tr)
+        bindRowEvents(tr, data)
+        calc()
+        showPosMessage(data.name + ' adicionado ao carrinho.', 'success')
+        return true
+    }
+
+    function addProductFromSelect() {
+        var id = $('#product-id').val()
+        var qty = getRequestedQuantity('#product-qty')
+        if (id == '' || id == null) {
+            showPosMessage('Selecione um produto para adicionar manualmente.', 'danger')
+            return false
+        }
+        var result = addProductToOrder(prod_arr[String(id)], qty)
+        if (result) {
+            $('#product-id').val('').trigger('change')
+            $('#product-qty').val(1)
+            focusBarcodeField()
+        }
+        return result
+    }
+
+    function addProductFromBarcode() {
+        var quickValue = $('#barcode-input').val()
+        var qty = getRequestedQuantity('#barcode-qty')
+        var resultData = findProductByQuickEntry(quickValue)
+        if (!resultData.product) {
+            showPosMessage(resultData.message, resultData.type || 'danger')
+            focusBarcodeField()
+            return false
+        }
+        var result = addProductToOrder(resultData.product, qty)
+        $('#barcode-input').val('')
+        $('#barcode-qty').val(1)
+        focusBarcodeField()
+        return result
+    }
+
+    function calc() {
+        var sub_total = 0;
+        var grand_total = 0;
+        $('#POS-field table tbody tr').each(function() {
+            price = $(this).find('[name="price[]"]').val()
+            qty = $(this).find('[name="qty[]"]').val()
+            qty = qty > 0 ? qty : 0
+            total = parseFloat(price) * parseFloat(qty)
+            $(this).find('.product_total').text(parseFloat(total).toLocaleString('pt-BR'))
+            sub_total += parseFloat(total)
+        })
+        tax = $('[name="tax"]').val()
+        tax = tax / 100;
+        var tax_amount = parseFloat(sub_total) * parseFloat(tax);
+        $('#tax_amount').text(parseFloat(tax_amount).toLocaleString('pt-BR'))
+        $('[name="tax_amount"]').val(parseFloat(tax_amount))
+        $('#grand_total').text(parseFloat(sub_total).toLocaleString('pt-BR'))
+        $('[name="grand_total"]').val(parseFloat(sub_total))
+        $('#sub_total').text(parseFloat(sub_total).toLocaleString('pt-BR'))
+        $('[name="sub_total"]').val(parseFloat(sub_total))
+
+    }
+    $(function() {
+        focusBarcodeField()
+        $('#add_item').click(function() {
+            addProductFromSelect()
+        })
+        $('#barcode-add').click(function() {
+            addProductFromBarcode()
+        })
+        $('#barcode-input').on('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault()
+                addProductFromBarcode()
+            }
+        })
+        $(document).on('keydown', function(e) {
+            if (e.key === 'F8') {
+                e.preventDefault()
+                focusBarcodeField()
+            }
+        })
+        $(document).on('click', function(e) {
+            if ($(e.target).closest('#uni_modal, .modal.show').length <= 0) {
+                refocusForScanner(e.target)
+            }
+        })
+        $(window).on('focus', function() {
+            focusBarcodeField(false)
+        })
+        $('#uni_modal').on('hidden.bs.modal', function() {
+            focusBarcodeField(false)
+        })
+        $('[name="tax"]').on('input keypress keydown keyup', function() {
+            calc()
+        })
+        $('#check_out').click(function() {
+            if ($('#POS-field table tbody tr').length <= 0) {
+                showPosMessage('Adicione pelo menos 1 produto primeiro.', 'danger')
+                return false;
+            }
+            uni_modal("Finalizar Compra", "{% url 'checkout-modal' %}?grand_total=" + $('[name="grand_total"]').val())
+        })
+        $('#pos-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url: "{% url 'save-pos' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-danger err-msg")
+                            // location.reload()
+                        uni_modal("Recibo", "{% url 'receipt-modal' %}?id=" + resp.sale_id)
+                        $('#uni_modal').on('hide.bs.modal', function() {
+                            location.reload()
+                        })
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.text(resp.msg)
+                    } else {
+                        el.text("Ocorreu um erro", 'error');
+                        end_loader();
+                        console.err(resp)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal").scrollTop(0);
+                    end_loader()
+                }
+            })
+        })
+    })
+</script>
+{% endblock ScriptBlock %}
