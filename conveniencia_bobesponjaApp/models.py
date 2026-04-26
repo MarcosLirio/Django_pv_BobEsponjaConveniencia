@@ -22,6 +22,7 @@ class Products(models.Model):
     name = models.TextField()
     description = models.TextField()
     price = models.FloatField(default=0)
+    overnight_price = models.FloatField(default=0)
     quantity = models.IntegerField(default=0)
     status= models.IntegerField(default=1)
     date_added = models.DateTimeField(default=timezone.now)
@@ -39,8 +40,6 @@ class Sales(models.Model):
     code=models.CharField(max_length=100)
     sub_total = models.FloatField(default=0)
     grand_total = models.FloatField(default=0)
-    tax_amount = models.FloatField(default=0)
-    tax = models.FloatField(default=0)
 
     tendered = models.FloatField(default=0)
     amount_change = models.FloatField(default=0)

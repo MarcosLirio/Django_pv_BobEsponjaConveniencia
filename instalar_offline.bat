@@ -24,6 +24,15 @@ if errorlevel 1 (
 
 echo.
 echo [2/5] Criando ambiente virtual...
+if exist ".venv\Scripts\python.exe" (
+    ".venv\Scripts\python.exe" --version >nul 2>nul
+    if errorlevel 1 (
+        echo Ambiente virtual existente esta invalido para esta maquina.
+        echo Recriando .venv localmente...
+        rmdir /S /Q ".venv"
+    )
+)
+
 if not exist ".venv\Scripts\python.exe" (
     %PYTHON_CMD% -m venv .venv
     if errorlevel 1 goto :error

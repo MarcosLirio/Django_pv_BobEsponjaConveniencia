@@ -1,4 +1,5 @@
 {% extends "conveniencia/base.html" %} 
+{% load humanize %}
 {% block pageContent %}
 <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
     <div class="mdc-card py-2">
@@ -54,9 +55,11 @@
             <table class="table table-striped table-bordered">
                 <colgroup>
                     <col width="5%">
+                    <col width="14%">
                     <col width="18%">
-                    <col width="18%">
-                    <col width="25%">
+                    <col width="21%">
+                    <col width="10%">
+                    <col width="10%">
                     <col width="10%">
                     <col width="12%">
                     <col width="12%">
@@ -67,6 +70,8 @@
                         <th class="text-center py-1">Categoria</th>
                         <th class="text-center py-1">Produto</th>
                         <th class="text-center py-1">Descrição</th>
+                        <th class="text-center py-1">Preço</th>
+                        <th class="text-center py-1">Preço Madrugada</th>
                         <th class="text-center py-1">Qtd</th>
                         <th class="text-center py-1">Status</th>
                         <th class="text-center py-1">Ação</th>
@@ -79,6 +84,14 @@
                         <td class="px-2 py-1 text-start">{{ product.category_id }}</td>
                         <td class="px-2 py-1 text-start">{{ product.code }} - {{ product.name }}</td>
                         <td class="px-2 py-1 text-start">{{ product.description }}</td>
+                        <td class="px-2 py-1 text-end">R$ {{ product.price|floatformat:2|intcomma }}</td>
+                        <td class="px-2 py-1 text-end">
+                            {% if product.overnight_price > 0 %}
+                            R$ {{ product.overnight_price|floatformat:2|intcomma }}
+                            {% else %}
+                            <span class="text-muted">Usa preço normal</span>
+                            {% endif %}
+                        </td>
                         <td class="px-2 py-1 text-center">{{ product.quantity }}</td>
                         <td class="px-2 py-1 text-center">
                             {% if product.status == 1 %}

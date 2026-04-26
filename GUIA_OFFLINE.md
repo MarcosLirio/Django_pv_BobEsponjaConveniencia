@@ -8,6 +8,7 @@ Este projeto pode rodar totalmente offline em outra maquina porque usa banco SQL
 - a pasta offline_packages
 - o instalador do Python 3
 - o arquivo .env, se voce usa configuracoes personalizadas
+- nao reaproveite a pasta .venv de outro computador; o instalador offline recria isso na maquina de destino
 
 ## Como preparar na maquina atual
 
@@ -23,12 +24,16 @@ Este projeto pode rodar totalmente offline em outra maquina porque usa banco SQL
 4. Se quiser iniciar com base limpa para implantacao, execute limpar_base_implantacao.bat.
 5. Quando terminar, execute iniciar_sistema_local.bat.
 
+Se a pasta .venv tiver vindo copiada de outro computador, o instalador agora apaga e recria automaticamente esse ambiente virtual.
+Os arquivos de inicializacao usam modo estavel sem autoreload, para evitar falhas do StatReloader em maquinas de implantacao.
+
 ## Como liberar para rede local sem internet
 
 1. Descubra o IP da maquina principal com ipconfig.
 2. No arquivo .env, ajuste DJANGO_ALLOWED_HOSTS com localhost, 127.0.0.1 e o IP da maquina.
-3. Execute iniciar_rede_local.bat na maquina principal.
-4. Nos outros computadores da mesma rede, abra http://IP_DA_MAQUINA:8000.
+3. Se a maquina principal abrir o sistema localmente mas os outros computadores nao acessarem, execute liberar_porta_8000_firewall.bat como Administrador.
+4. Execute iniciar_rede_local.bat na maquina principal.
+5. Nos outros computadores da mesma rede, abra http://IP_DA_MAQUINA:8000.
 
 ## Como acessar
 
@@ -43,3 +48,4 @@ Este projeto pode rodar totalmente offline em outra maquina porque usa banco SQL
 - O leitor de codigo de barras USB funciona como teclado e nao precisa de internet.
 - Recuperacao de senha por e-mail depende de SMTP e pode nao funcionar sem rede.
 - Para rede local, use iniciar_rede_local.bat e configure DJANGO_ALLOWED_HOSTS no arquivo .env.
+- Se a maquina principal abre pelo IP e os outros computadores nao acessam, o problema costuma ser firewall do Windows ou isolamento da rede Wi-Fi.

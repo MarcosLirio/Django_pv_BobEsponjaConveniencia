@@ -53,7 +53,7 @@
     <div class="mdc-card info-card info-card--warning">
         <div class="card-inner">
             <h5 class="card-title">Vendas de Hoje</h5>
-            <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_sales|intcomma }}</h5>
+            <h5 class="font-weight-light pb-2 mb-1 border-bottom">R$ {{ total_sales|floatformat:2|intcomma }}</h5>
             <p class="tx-12 text-muted">Total de Vendas Hoje</p>
             <div class="card-icon-wrapper">
                 <i class="mdi mdi-cash-multiple"></i>

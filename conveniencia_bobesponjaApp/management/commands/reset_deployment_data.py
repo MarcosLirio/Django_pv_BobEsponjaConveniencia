@@ -3,7 +3,9 @@ import shutil
 from datetime import datetime
 
 from django.conf import settings
+from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import User
+from django.contrib.sessions.models import Session
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 
@@ -37,6 +39,8 @@ class Command(BaseCommand):
                 'sales': Sales.objects.count(),
                 'products': Products.objects.count(),
                 'categories': Categorys.objects.count(),
+                'sessions': Session.objects.count(),
+                'admin_logs': LogEntry.objects.count(),
                 'users_removed': User.objects.exclude(id=admin_user.id).count(),
             }
 
@@ -44,6 +48,8 @@ class Command(BaseCommand):
             Sales.objects.all().delete()
             Products.objects.all().delete()
             Categorys.objects.all().delete()
+            Session.objects.all().delete()
+            LogEntry.objects.all().delete()
             User.objects.exclude(id=admin_user.id).delete()
 
             admin_user.is_superuser = True
@@ -60,6 +66,8 @@ class Command(BaseCommand):
         self.stdout.write(f'Vendas removidas: {deleted_summary["sales"]}')
         self.stdout.write(f'Produtos removidos: {deleted_summary["products"]}')
         self.stdout.write(f'Categorias removidas: {deleted_summary["categories"]}')
+        self.stdout.write(f'Sessoes removidas: {deleted_summary["sessions"]}')
+        self.stdout.write(f'Logs do admin removidos: {deleted_summary["admin_logs"]}')
         self.stdout.write(f'Usuarios removidos: {deleted_summary["users_removed"]}')
 
     def _backup_database(self):

@@ -15,12 +15,13 @@ echo ==============================================
 echo Este modo permite acesso de outros computadores da mesma rede.
 echo Confirme que o arquivo .env contem DJANGO_ALLOWED_HOSTS com o IP desta maquina.
 echo Exemplo: DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost,192.168.0.10
+echo Modo estavel: autoreload desativado para evitar falhas de StatReloader.
 echo.
 echo Descubra o IP local com o comando ipconfig, se necessario.
 echo Para encerrar, pressione CTRL + C nesta janela.
 echo.
 
-".venv\Scripts\python.exe" manage.py runserver 0.0.0.0:8000
+".venv\Scripts\python.exe" manage.py runserver 0.0.0.0:8000 --noreload
 
 echo.
 pause
