@@ -14,7 +14,8 @@ if exist ".venv\Scripts\python.exe" (
 
 echo.
 echo [1/3] Atualizando pasta offline_packages...
-if not exist "offline_packages" mkdir "offline_packages"
+if exist "offline_packages" rmdir /S /Q "offline_packages"
+mkdir "offline_packages"
 "%PYTHON_EXE%" -m pip download -r requirements.txt -d offline_packages
 if errorlevel 1 goto :error
 

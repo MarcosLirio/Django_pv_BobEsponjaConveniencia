@@ -12,6 +12,8 @@ from django.db import transaction
 from smtplib import SMTPAuthenticationError
 import json, sys
 from datetime import datetime,date
+from decimal import Decimal, InvalidOperation
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.crypto import get_random_string
 from django.urls import reverse
@@ -33,6 +35,43 @@ def admin_required(view_func):
             return redirect('pos-page')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
+
+def is_overnight_period(reference_dt=None):
+    current_dt = timezone.localtime(reference_dt or timezone.now())
+    return 0 <= current_dt.hour < 6
+
+
+def get_product_active_price(product, reference_dt=None):
+    if is_overnight_period(reference_dt):
+        overnight_price = float(getattr(product, 'overnight_price', 0) or 0)
+        if overnight_price > 0:
+            return overnight_price
+    return float(product.price)
+
+
+def parse_brl_currency(value, default=0):
+    if value is None:
+        return default
+
+    cleaned_value = str(value).strip()
+    if cleaned_value == '':
+        return default
+
+    cleaned_value = cleaned_value.replace('R$', '').replace(' ', '')
+    if ',' in cleaned_value:
+        cleaned_value = cleaned_value.replace('.', '').replace(',', '.')
+
+    try:
+        return float(cleaned_value)
+    except (TypeError, ValueError):
+        return default
+
+
+def format_brl(value):
+    normalized = float(value or 0)
+    formatted = f'{normalized:,.2f}'
+    return f'R$ {formatted.replace(",", "_").replace(".", ",").replace("_", ".")}'
 
 
 def about(request):
@@ -268,7 +307,7 @@ def update_user_account(request):
                 resp['msg'] = 'O nome de usuário é obrigatório.'
             elif User.objects.exclude(id=user_obj.id).filter(username=username).exists():
                 resp['msg'] = 'Já existe outro usuário com esse nome.'
-            elif user_obj == request.user and not is_admin:
+            elif not is_admin and user_obj.is_superuser and User.objects.filter(is_superuser=True).exclude(id=user_obj.id).count() <= 0:
                 resp['msg'] = 'Voce nao pode remover seu proprio perfil de administrador aqui.'
             else:
                 user_obj.username = username
@@ -493,20 +532,25 @@ def save_product(request):
     id = ''
     if 'id' in data:
         id = data['id']
+    code_exists = False
     if id.isnumeric() and int(id)>0:
-        check = Products.objects.exclude(id=id).filter(code=data['code']).first()
+        code_exists = Products.objects.exclude(id=id).filter(code=data['code']).exists()
     else:
-        check = Products.objects.filter(code=data['code']).all()
-    if len(check)>0:
+        code_exists = Products.objects.filter(code=data['code']).exists()
+    if code_exists:
         resp['msg']='Código do produto já existe no banco de dados.'
     else:
         category = Categorys.objects.filter(id=data['category_id']).first()
         try:
             quantity = 0
+            overnight_price = 0
+            base_price = 0
             try:
                 quantity = int(data.get('quantity', 0))
             except (ValueError, TypeError):
                 quantity = 0
+            base_price = parse_brl_currency(data.get('price', 0), 0)
+            overnight_price = parse_brl_currency(data.get('overnight_price', 0), 0)
             if (data['id'].isnumeric() and int(data['id'])>0):
                 save_product = Products.objects.filter(id=data['id']).first()
                 if save_product:
@@ -514,12 +558,13 @@ def save_product(request):
                     save_product.category_id = category
                     save_product.name = data['name']
                     save_product.description = data['description']
-                    save_product.price = data['price']
+                    save_product.price = base_price
+                    save_product.overnight_price = overnight_price
                     save_product.quantity = quantity
                     save_product.status = data['status']
                     save_product.save()
             else:
-                save_product = Products(code=data['code'], category_id=category, name=data['name'], description=data['description'], price=data['price'], quantity=quantity, status=data['status'])
+                save_product = Products(code=data['code'], category_id=category, name=data['name'], description=data['description'], price=base_price, overnight_price=overnight_price, quantity=quantity, status=data['status'])
                 save_product.save()
             resp['status']='success'
             messages.success(request, 'Produto salvo com sucesso.')
@@ -543,18 +588,24 @@ def delete_product(request):
 def pos(request):
     products = Products.objects.filter(status=1)
     products_json = []
+    overnight_mode = is_overnight_period()
     for product in products:
+        active_price = get_product_active_price(product)
         products_json.append({
             'id': product.id,
             'code': product.code,
             'name': product.name,
-            'price': float(product.price),
+            'price': active_price,
+            'base_price': float(product.price),
+            'overnight_price': float(product.overnight_price),
+            'overnight_mode': overnight_mode,
             'quantity': product.quantity,
         })
     context = {
         'page_title': 'Ponto de Venda',
         'products': products,
-        'product_json': mark_safe(json.dumps(products_json))
+        'product_json': mark_safe(json.dumps(products_json)),
+        'overnight_mode': overnight_mode,
     }
     return render(request, 'conveniencia/pos.html', context)
 
@@ -586,24 +637,13 @@ def save_pos(request):
         product_ids = data.getlist('product_id[]')
         quantities = data.getlist('qty[]')
         prices = data.getlist('price[]')
+        sale_items_payload = []
+        computed_sub_total = 0
 
         if not product_ids:
             raise ValueError('Adicione pelo menos um item antes de finalizar a venda.')
 
         with transaction.atomic():
-            sale = Sales(
-                user=request.user,
-                code=code,
-                sub_total=data['sub_total'],
-                tax=data['tax'],
-                tax_amount=data['tax_amount'],
-                grand_total=data['grand_total'],
-                tendered=data['tendered_amount'],
-                amount_change=data['amount_change']
-            )
-            sale.save()
-            sale_id = sale.pk
-
             for index, product_id in enumerate(product_ids):
                 product = Products.objects.select_for_update().filter(id=product_id, status=1).first()
                 if not product:
@@ -611,8 +651,12 @@ def save_pos(request):
 
                 try:
                     qty = int(float(quantities[index]))
-                    price = float(prices[index])
                 except (TypeError, ValueError, IndexError):
+                    raise ValueError('Foi encontrado um item com quantidade ou preco invalido.')
+
+                try:
+                    submitted_price = Decimal(str(prices[index]))
+                except (TypeError, ValueError, IndexError, InvalidOperation):
                     raise ValueError('Foi encontrado um item com quantidade ou preco invalido.')
 
                 if qty <= 0:
@@ -621,17 +665,42 @@ def save_pos(request):
                 if product.quantity < qty:
                     raise ValueError(f'Estoque insuficiente para o produto {product.name}. Disponivel: {product.quantity}.')
 
+                active_price = Decimal(str(get_product_active_price(product)))
+                if submitted_price != active_price:
+                    raise ValueError(f'O preco do produto {product.name} mudou. Adicione o item novamente para atualizar o caixa.')
+
+                price = float(active_price)
                 total = float(qty) * float(price)
+                computed_sub_total += total
+                sale_items_payload.append({
+                    'product': product,
+                    'qty': qty,
+                    'price': price,
+                    'total': total,
+                })
+
+            sale = Sales(
+                user=request.user,
+                code=code,
+                sub_total=computed_sub_total,
+                grand_total=computed_sub_total,
+                tendered=data['tendered_amount'],
+                amount_change=data['amount_change']
+            )
+            sale.save()
+            sale_id = sale.pk
+
+            for item in sale_items_payload:
                 Salesitems(
                     sale_id=sale,
-                    product_id=product,
-                    qty=qty,
-                    price=price,
-                    total_price=total
+                    product_id=item['product'],
+                    qty=item['qty'],
+                    price=item['price'],
+                    total_price=item['total']
                 ).save()
 
-                product.quantity -= qty
-                product.save(update_fields=['quantity', 'date_updated'])
+                item['product'].quantity -= item['qty']
+                item['product'].save(update_fields=['quantity', 'date_updated'])
 
         resp['status'] = 'success'
         resp['sale_id'] = sale_id
@@ -652,8 +721,6 @@ def salesList(request):
         data['items'] = Salesitems.objects.filter(sale_id = sale).all()
         data['item_count'] = len(data['items'])
         data['cashier'] = sale.user.username if sale.user else 'Sistema'
-        if 'tax_amount' in data:
-            data['tax_amount'] = format(float(data['tax_amount']),'.2f')
         sale_data.append(data)
     context = {
         'page_title':'Transações de Vendas',
@@ -673,8 +740,6 @@ def receipt(request):
     for field in Sales._meta.get_fields():
         if field.related_model is None:
             transaction[field.name] = getattr(sales_obj,field.name)
-    if 'tax_amount' in transaction:
-        transaction['tax_amount'] = format(float(transaction['tax_amount']))
     ItemList = Salesitems.objects.filter(sale_id = sales_obj).all()
     context = {
         "transaction" : transaction,
@@ -732,8 +797,6 @@ def generate_sales_report(request):
     # Calculate totals
     total_vendas = sales_queryset.count()
     total_valor = sum(s.grand_total for s in sales_queryset)
-    total_imposto = sum(s.tax_amount for s in sales_queryset)
-    
     # Create PDF
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
@@ -771,8 +834,7 @@ def generate_sales_report(request):
     summary_data = [
         ['Métrica', 'Valor'],
         ['Total de Vendas', str(total_vendas)],
-        ['Valor Total', f'R$ {total_valor:,.2f}'],
-        ['Imposto Total', f'R$ {total_imposto:,.2f}'],
+        ['Valor Total', format_brl(total_valor)],
     ]
     
     summary_table = Table(summary_data, colWidths=[3*inch, 2*inch])
@@ -794,7 +856,7 @@ def generate_sales_report(request):
     elements.append(Paragraph('<b>Detalhamento de Vendas</b>', styles['Heading2']))
     elements.append(Spacer(1, 0.15*inch))
     
-    sales_data = [['Data/Hora', 'Código', 'Produto', 'Qtd', 'Imposto', 'Subtotal']]
+    sales_data = [['Data/Hora', 'Código', 'Produto', 'Qtd', 'Subtotal']]
     date_row_indices = []
     daily_total_row_indices = []
     current_date = None
@@ -802,7 +864,7 @@ def generate_sales_report(request):
     
     def append_daily_total(date_total):
         if date_total is not None:
-            sales_data.append(['', '', '', '', 'TOT DO DIA', f'R$ {date_total:,.2f}'])
+            sales_data.append(['', '', '', 'TOT DO DIA', format_brl(date_total)])
             daily_total_row_indices.append(len(sales_data) - 1)
 
     for sale in sales_queryset:
@@ -812,7 +874,7 @@ def generate_sales_report(request):
                 append_daily_total(daily_total)
             current_date = sale_day
             daily_total = 0.0
-            sales_data.append([f'DIA: {current_date}', '', '', '', '', ''])
+            sales_data.append([f'DIA: {current_date}', '', '', '', ''])
             date_row_indices.append(len(sales_data) - 1)
         
         sale_items = Salesitems.objects.filter(sale_id=sale).all()
@@ -825,8 +887,7 @@ def generate_sales_report(request):
                     sale.code,
                     item.product_id.name if item.product_id else '-',
                     str(item.qty),
-                    f'R$ {sale.tax_amount:,.2f}',
-                    f'R$ {item_subtotal:,.2f}'
+                    format_brl(item_subtotal)
                 ])
         else:
             line_subtotal = float(sale.sub_total)
@@ -836,15 +897,14 @@ def generate_sales_report(request):
                 sale.code,
                 '-',
                 '0',
-                f'R$ {sale.tax_amount:,.2f}',
-                f'R$ {line_subtotal:,.2f}'
+                format_brl(line_subtotal)
             ])
     
     if current_date is not None:
         append_daily_total(daily_total)
     if len(sales_data) > 1:
-        sales_data.append(['', '', '', '', 'TOTAL', f'R$ {total_valor:,.2f}'])
-        sales_table = Table(sales_data, colWidths=[1.3*inch, 1.0*inch, 2.3*inch, 0.7*inch, 1.0*inch, 1.0*inch], repeatRows=1)
+        sales_data.append(['', '', '', 'TOTAL', format_brl(total_valor)])
+        sales_table = Table(sales_data, colWidths=[1.5*inch, 1.1*inch, 2.6*inch, 0.8*inch, 1.2*inch], repeatRows=1)
         table_style = TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0066cc')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -857,7 +917,7 @@ def generate_sales_report(request):
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
             ('FONTSIZE', (0, 1), (-1, -1), 9),
             ('ALIGN', (2, 1), (2, -2), 'LEFT'),
-            ('ALIGN', (4, 1), (-1, -1), 'RIGHT'),
+            ('ALIGN', (4, 1), (4, -1), 'RIGHT'),
             ('SPAN', (0, -1), (3, -1)),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
             ('FONTSIZE', (0, -1), (-1, -1), 10),

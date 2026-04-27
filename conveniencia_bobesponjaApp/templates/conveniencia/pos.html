@@ -12,8 +12,13 @@
             <fieldset>
                 <legend>Adicionar Produtos</legend>
                 <div id="pos-feedback" class="alert d-none" role="alert"></div>
+                {% if overnight_mode %}
+                <div class="alert alert-warning rounded-0" role="alert">
+                    Preço de madrugada ativo. O caixa está usando o valor configurado para vendas entre 00:00 e 05:59.
+                </div>
+                {% endif %}
                 <div class="row align-items-end">
-                    <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="col-lg-8 col-md-8 col-sm-12">
                         <div class="form-group mb-3">
                             <label for="barcode-input">Entrada Rápida do Caixa</label>
                             <input type="text" id="barcode-input" class="form-control form-control-sm" list="product-quick-search" placeholder="Leia o codigo de barras ou digite codigo/nome" autocomplete="off">
@@ -23,43 +28,25 @@
                                     <option value="{{ product.name }}">{{ product.code }}</option>
                                 {% endfor %}
                             </datalist>
-                            <small class="text-muted">Aceita leitor, codigo digitado ou nome do produto. Tecla F8 devolve o foco para esta entrada.</small>
+                            <small class="text-muted">Ao ler ou digitar e confirmar, o produto entra direto na lista e fica como item selecionado.</small>
                         </div>
                     </div>
                     <div class="col-lg-2 col-md-2 col-sm-12">
                         <div class="form-group mb-3">
-                            <label for="barcode-qty">Quantidade</label>
-                            <input type="number" class="form-control form-control-sm text-center" min="1" step="1" id="barcode-qty" value="1">
+                            <label for="order-qty">Quantidade</label>
+                            <input type="number" class="form-control form-control-sm text-center" min="1" step="1" id="order-qty" value="1">
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-4 col-sm-12">
+                    <div class="col-lg-2 col-md-2 col-sm-12">
                         <div class="form-group mb-3">
-                            <button class="btn btn-outline-light btn-sm bg-dark border rounded-0 text-start w-100" type="button" id="barcode-add"><i class="mdi mdi-barcode-scan"></i> Buscar e Adicionar</button>
+                            <label class="d-block">&nbsp;</label>
+                            <button class="btn btn-light btn-sm bg-gradient border rounded-0 text-start w-100" type="button" id="add_item"><i class="mdi mdi-plus"></i> Adicionar</button>
                         </div>
                     </div>
                 </div>
-                <div class="row align-items-end">
-                    <div class="col-lg-8 col-md-7 col-sm-12">
-                        <div class="form-group mb-3">
-                            <label for="product-id">Selecionar Produto Manualmente</label>
-                            <select id="product-id" class="form-select form-select-sm">
-                                <option value="" disabled selected></option>
-                                {% for product in products %}
-                                    <option value="{{ product.pk }}">{{ product }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-12">
-                        <div class="form-group mb-3">
-                            <label for="product-qty">Quantidade</label>
-                            <input type="number" class="form-control form-control-sm text-center" min="1" step="1" id="product-qty" value="1">
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-2 col-sm-12">
-                        <div class="form-group mb-3">
-                            <button class="btn btn-light btn-sm bg-gradient border rounded-0 text-start w-100" type="button" id="add_item"><i class="mdi mdi-plus"></i> Adicionar</button>
-                        </div>
+                <div class="row">
+                    <div class="col-12">
+                        <small class="text-muted">Use esta quantidade para somar no último produto lido ou no item selecionado na lista.</small>
                     </div>
                 </div>
             </fieldset>
@@ -94,15 +81,6 @@
                                 <dd class="text-end py-1 px-2 rounded-0 bg-light">
                                     <input type="hidden" name="sub_total" value="0">
                                     <span class="h3 fw-bold" id="sub_total">0.00</span>
-                                </dd>
-                                <dt class="h4 fw-bold text-light">Imposto Inclusivo (%)</dt>
-                                <dd>
-                                    <input type="number" class="form-control form-control-lg rounded-0 text-end" step="any" min="0" max="100" name="tax" value="0">
-                                </dd>
-                                <dt class="h4 fw-bold text-light">Valor do Imposto</dt>
-                                <dd class="text-end py-1 px-2 rounded-0 bg-light">
-                                    <input type="hidden" name="tax_amount" value="0">
-                                    <span class="h3 fw-bold" id="tax_amount">0.00</span>
                                 </dd>
                                 <dt class="h4 fw-bold text-light">Total Geral</dt>
                                 <dd class="text-end py-1 px-2 rounded-0 bg-light">
@@ -147,6 +125,10 @@
     var prod_arr = {}
     var prod_code_arr = {}
     var product_list = []
+    var currentSelectedProductId = null
+    var scannerBuffer = ''
+    var scannerLastKeyAt = 0
+    var scannerPrimed = false
 
     function normalizeBarcode(value) {
         return String(value || '').replace(/\s+/g, '').trim();
@@ -180,35 +162,60 @@
         }
     }
 
-    function focusBarcodeField(shouldSelect) {
-        var barcodeInput = $('#barcode-input')
-        if (!barcodeInput.length || $('#uni_modal').hasClass('show')) {
+    function formatBRL(value) {
+        return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    }
+
+    function setSelectedProduct(productId) {
+        currentSelectedProductId = productId ? String(productId) : null
+        $('#POS-field table tbody tr').removeClass('table-primary border-primary')
+        if (!currentSelectedProductId) {
+            $('#order-qty').val(1)
             return
         }
-        barcodeInput.trigger('focus')
-        if (shouldSelect !== false) {
-            barcodeInput.select()
+        var selectedRow = $('#POS-field table tbody input[name="product_id[]"][value="' + currentSelectedProductId + '"]').closest('tr')
+        if (selectedRow.length > 0) {
+            selectedRow.addClass('table-primary border-primary')
+            $('#order-qty').val(selectedRow.find('[name="qty[]"]').val())
         }
     }
 
-    function canStealFocus(target) {
-        return !$(target).is('#barcode-input, #barcode-qty, #product-id, #product-qty, [name="tax"], [name="qty[]"], textarea, select, [contenteditable="true"]')
+    function findOrderRow(productId) {
+        return $('#POS-field table tbody input[name="product_id[]"][value="' + productId + '"]').closest('tr')
     }
 
-    function refocusForScanner(target) {
-        if (canStealFocus(target)) {
-            setTimeout(function() {
-                focusBarcodeField(false)
-            }, 0)
+    function getRequestedQuantity(selector, fieldLabel) {
+        var qtyInput = $(selector)
+        var rawValue = qtyInput.val()
+        var qty = parseInt(rawValue, 10)
+
+        if (String(rawValue).trim() === '') {
+            showPosMessage('Informe a quantidade em ' + fieldLabel + '.', 'danger')
+            qtyInput.trigger('focus').select()
+            return null
         }
-    }
 
-    function getRequestedQuantity(selector) {
-        var qty = parseInt($(selector).val(), 10)
         if (isNaN(qty) || qty <= 0) {
-            return 1
+            showPosMessage('A quantidade em ' + fieldLabel + ' deve ser maior que zero.', 'danger')
+            qtyInput.trigger('focus').select()
+            return null
         }
+
+        qtyInput.val(qty)
         return qty
+    }
+
+    function getSelectedProductForAdd() {
+        if (currentSelectedProductId && prod_arr[currentSelectedProductId]) {
+            return prod_arr[currentSelectedProductId]
+        }
+        return null
+    }
+
+    function resetScannerCapture() {
+        scannerBuffer = ''
+        scannerLastKeyAt = 0
+        scannerPrimed = false
     }
 
     function findProductByQuickEntry(rawValue) {
@@ -260,6 +267,9 @@
     }
 
     function bindRowEvents(tr, data) {
+        tr.on('click', function() {
+            setSelectedProduct(data.id)
+        })
         tr.find('[name="qty[]"]').on('input keypress keyup keydown', function() {
             var currentQty = parseInt($(this).val(), 10)
             if (isNaN(currentQty) || currentQty <= 0) {
@@ -270,15 +280,49 @@
                 $(this).val(data.quantity)
                 showPosMessage('Quantidade ajustada ao estoque disponivel para ' + data.name + '.', 'warning')
             }
+            if (currentSelectedProductId === String(data.id)) {
+                $('#order-qty').val($(this).val())
+            }
             calc()
         })
         tr.find('.rem-item').click(function() {
             if (confirm('Tem certeza de que deseja remover o produto ' + data.name + ' da lista?') == true) {
+                if (currentSelectedProductId === String(data.id)) {
+                    setSelectedProduct(null)
+                }
                 tr.remove()
                 calc()
-                focusBarcodeField()
             }
         })
+    }
+
+    function applySelectedProductQuantity() {
+        var selectedProduct = getSelectedProductForAdd()
+        var qty = getRequestedQuantity('#order-qty', 'Quantidade')
+        if (qty === null) {
+            return false
+        }
+        if (!selectedProduct) {
+            showPosMessage('Leia um codigo de barras ou clique em um item da lista antes de ajustar a quantidade.', 'danger')
+            return false
+        }
+
+        var availableQty = parseInt(selectedProduct.quantity, 10)
+        if (!isNaN(availableQty) && qty > availableQty) {
+            showPosMessage('Estoque insuficiente para ' + selectedProduct.name + '. Disponivel: ' + availableQty + '.', 'danger')
+            return false
+        }
+
+        var selectedRow = findOrderRow(String(selectedProduct.id))
+        if (selectedRow.length <= 0) {
+            return addProductToOrder(selectedProduct, qty)
+        }
+
+        selectedRow.find('[name="qty[]"]').val(qty)
+        calc()
+        setSelectedProduct(selectedProduct.id)
+        showPosMessage('Quantidade de ' + selectedProduct.name + ' atualizada para ' + qty + '.', 'success')
+        return true
     }
 
     function addProductToOrder(data, qty) {
@@ -311,6 +355,7 @@
 
             qtyInput.val(newQty)
             calc()
+            setSelectedProduct(data.id)
             showPosMessage(data.name + ' atualizado no carrinho.', 'success')
             return true
         }
@@ -325,44 +370,29 @@
         tr.find('[name="product_id[]"]').val(data.id)
         tr.find('[name="price[]"]').val(data.price)
         tr.find('.product_name').html('<div>' + data.name + '</div><small class="text-muted">Cod. ' + data.code + '</small>')
-        tr.find('.product_price').text(parseFloat(data.price).toLocaleString('pt-BR'))
-        tr.find('.product_total').text(parseFloat(data.price * qty).toLocaleString('pt-BR'))
+        tr.find('.product_price').text(formatBRL(data.price))
+        tr.find('.product_total').text(formatBRL(data.price * qty))
         $('#POS-field table tbody').append(tr)
         bindRowEvents(tr, data)
         calc()
+        setSelectedProduct(data.id)
         showPosMessage(data.name + ' adicionado ao carrinho.', 'success')
         return true
     }
 
     function addProductFromSelect() {
-        var id = $('#product-id').val()
-        var qty = getRequestedQuantity('#product-qty')
-        if (id == '' || id == null) {
-            showPosMessage('Selecione um produto para adicionar manualmente.', 'danger')
-            return false
-        }
-        var result = addProductToOrder(prod_arr[String(id)], qty)
-        if (result) {
-            $('#product-id').val('').trigger('change')
-            $('#product-qty').val(1)
-            focusBarcodeField()
-        }
-        return result
+        return applySelectedProductQuantity()
     }
 
-    function addProductFromBarcode() {
-        var quickValue = $('#barcode-input').val()
-        var qty = getRequestedQuantity('#barcode-qty')
+    function addProductFromBarcode(rawValueOverride) {
+        var quickValue = typeof rawValueOverride === 'string' ? rawValueOverride : $('#barcode-input').val()
         var resultData = findProductByQuickEntry(quickValue)
         if (!resultData.product) {
             showPosMessage(resultData.message, resultData.type || 'danger')
-            focusBarcodeField()
             return false
         }
-        var result = addProductToOrder(resultData.product, qty)
+        var result = addProductToOrder(resultData.product, 1)
         $('#barcode-input').val('')
-        $('#barcode-qty').val(1)
-        focusBarcodeField()
         return result
     }
 
@@ -374,22 +404,16 @@
             qty = $(this).find('[name="qty[]"]').val()
             qty = qty > 0 ? qty : 0
             total = parseFloat(price) * parseFloat(qty)
-            $(this).find('.product_total').text(parseFloat(total).toLocaleString('pt-BR'))
+            $(this).find('.product_total').text(formatBRL(total))
             sub_total += parseFloat(total)
         })
-        tax = $('[name="tax"]').val()
-        tax = tax / 100;
-        var tax_amount = parseFloat(sub_total) * parseFloat(tax);
-        $('#tax_amount').text(parseFloat(tax_amount).toLocaleString('pt-BR'))
-        $('[name="tax_amount"]').val(parseFloat(tax_amount))
-        $('#grand_total').text(parseFloat(sub_total).toLocaleString('pt-BR'))
+        $('#grand_total').text(formatBRL(sub_total))
         $('[name="grand_total"]').val(parseFloat(sub_total))
-        $('#sub_total').text(parseFloat(sub_total).toLocaleString('pt-BR'))
+        $('#sub_total').text(formatBRL(sub_total))
         $('[name="sub_total"]').val(parseFloat(sub_total))
 
     }
     $(function() {
-        focusBarcodeField()
         $('#add_item').click(function() {
             addProductFromSelect()
         })
@@ -403,30 +427,59 @@
             }
         })
         $(document).on('keydown', function(e) {
-            if (e.key === 'F8') {
+            if (e.ctrlKey || e.altKey || e.metaKey) {
+                return
+            }
+            if ($(e.target).is('#barcode-input, textarea, [contenteditable="true"]')) {
+                return
+            }
+            if (e.key === 'Enter') {
+                if (scannerPrimed && scannerBuffer.length >= 6) {
+                    e.preventDefault()
+                    $('#barcode-input').val(scannerBuffer)
+                    addProductFromBarcode(scannerBuffer)
+                }
+                resetScannerCapture()
+                return
+            }
+            if (!/^[0-9]$/.test(e.key)) {
+                resetScannerCapture()
+                return
+            }
+
+            var now = Date.now()
+            if (scannerLastKeyAt && (now - scannerLastKeyAt) <= 50) {
+                if (!scannerPrimed && $(e.target).is('#order-qty, [name="qty[]"]')) {
+                    if (currentSelectedProductId) {
+                        var selectedRow = findOrderRow(currentSelectedProductId)
+                        if (selectedRow.length > 0) {
+                            $(e.target).val(selectedRow.find('[name="qty[]"]').val())
+                        }
+                    } else {
+                        $(e.target).val('1')
+                    }
+                }
+                scannerPrimed = true
+                scannerBuffer += e.key
                 e.preventDefault()
-                focusBarcodeField()
+            } else {
+                scannerBuffer = e.key
+                scannerPrimed = false
             }
+            scannerLastKeyAt = now
         })
-        $(document).on('click', function(e) {
-            if ($(e.target).closest('#uni_modal, .modal.show').length <= 0) {
-                refocusForScanner(e.target)
+        $('#order-qty').on('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault()
+                addProductFromSelect()
             }
-        })
-        $(window).on('focus', function() {
-            focusBarcodeField(false)
-        })
-        $('#uni_modal').on('hidden.bs.modal', function() {
-            focusBarcodeField(false)
-        })
-        $('[name="tax"]').on('input keypress keydown keyup', function() {
-            calc()
         })
         $('#check_out').click(function() {
             if ($('#POS-field table tbody tr').length <= 0) {
                 showPosMessage('Adicione pelo menos 1 produto primeiro.', 'danger')
                 return false;
             }
+            calc()
             uni_modal("Finalizar Compra", "{% url 'checkout-modal' %}?grand_total=" + $('[name="grand_total"]').val())
         })
         $('#pos-form').submit(function(e) {

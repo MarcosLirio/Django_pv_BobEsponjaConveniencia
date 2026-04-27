@@ -36,9 +36,8 @@
                     <col width="5%">
                     <col width="16%">
                     <col width="16%">
-                    <col width="12%">
                     <col width="16%">
-                    <col width="12%">
+                    <col width="18%">
                     <col width="10%">
                     <col width="13%">
                 </colgroup>
@@ -49,7 +48,6 @@
                         <th class="text-center py-1">Código Trans.</th>
                         <th class="text-center py-1">Usuário</th>
                         <th class="text-center py-1">Total</th>
-                        <th class="text-center py-1">Imposto Incluso</th>
                         <th class="text-center py-1">Itens</th>
                         <th class="text-center py-1">Ação</th>
                     </tr>
@@ -61,8 +59,7 @@
                         <td class="px-2 py-1 text-start">{{ sale.date_added|date:'Y-m-d H:i' }}</td>
                         <td class="px-2 py-1 text-start">{{ sale.code }}</td>
                         <td class="px-2 py-1 text-center">{{ sale.cashier }}</td>
-                        <td class="px-2 py-1 text-end">{{ sale.grand_total|intcomma }}</td>
-                        <td class="px-2 py-1 text-end">({{ sale.tax }}%) {{ sale.tax_amount|intcomma:2 }}</td>
+                        <td class="px-2 py-1 text-end">R$ {{ sale.grand_total|floatformat:2|intcomma }}</td>
                         <td class="px-2 py-1 text-center">{{ sale.item_count|intcomma }}</td>
                         <td class="px-2 py-1 text-center">
                             <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light mdc-ripple-upgraded view-data" type="button" data-id="{{ sale.id }}" title="Ver Recibo">

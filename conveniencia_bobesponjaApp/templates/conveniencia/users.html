@@ -1,5 +1,6 @@
 {% extends "conveniencia/base.html" %}
 {% load static %}
+{% load humanize %}
 {% block pageContent %}
 <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
     <div class="mdc-card py-2">
@@ -62,7 +63,7 @@
                             {% endif %}
                         </td>
                         <td class="text-center py-1">{{ item.total_sales_count }}</td>
-                        <td class="text-center py-1">R$ {{ item.total_sales_amount|default:0 }}</td>
+                        <td class="text-center py-1">R$ {{ item.total_sales_amount|default:0|floatformat:2|intcomma }}</td>
                         <td class="text-center py-1">
                             {% if item.is_active %}
                             <span class="badge bg-success px-3">Ativo</span>
@@ -81,15 +82,11 @@
                             {% endif %}
                         </td>
                         <td class="text-center py-1">
-                            {% if item.id != request.user.id %}
                             <button class="btn btn-sm btn-primary edit-user" data-id="{{ item.id }}" data-username="{{ item.username }}" data-email="{{ item.email }}" data-is-admin="{% if item.is_superuser %}1{% else %}0{% endif %}">Editar</button>
-                            <button class="btn btn-sm btn-warning toggle-status" data-id="{{ item.id }}">
+                            <button class="btn btn-sm btn-warning toggle-status" data-id="{{ item.id }}" {% if item.id == request.user.id or item.is_superuser %}disabled title="Ação indisponível para esta conta"{% endif %}>
                                 {% if item.is_active %}Desativar{% else %}Ativar{% endif %}
                             </button>
-                            <button class="btn btn-sm btn-danger delete-user" data-id="{{ item.id }}" data-name="{{ item.username }}">Excluir</button>
-                            {% else %}
-                            <span class="text-muted">Protegido</span>
-                            {% endif %}
+                            <button class="btn btn-sm btn-danger delete-user" data-id="{{ item.id }}" data-name="{{ item.username }}" {% if item.id == request.user.id or item.is_superuser %}disabled title="Ação indisponível para esta conta"{% endif %}>Excluir</button>
                         </td>
                     </tr>
                     {% empty %}
@@ -126,7 +123,7 @@
                             {{ item.username }}
                         </td>
                         <td>{{ item.total_sales_count }}</td>
-                        <td>R$ {{ item.total_sales_amount|default:0 }}</td>
+                        <td>R$ {{ item.total_sales_amount|default:0|floatformat:2|intcomma }}</td>
                     </tr>
                     {% empty %}
                     <tr>
