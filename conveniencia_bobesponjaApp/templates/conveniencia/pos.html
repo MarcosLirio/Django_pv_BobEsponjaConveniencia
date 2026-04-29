@@ -14,24 +14,15 @@
                 <div id="pos-feedback" class="alert d-none" role="alert"></div>
                 {% if overnight_mode %}
                 <div class="alert alert-warning rounded-0" role="alert">
-<<<<<<< HEAD
                     Preço de madrugada ativo. O caixa está usando o valor configurado para vendas entre 00:00 e 05:59.
-=======
-                    Preço de madrugada ativo. O caixa está usando o valor configurado para vendas entre 00:00 e 06:00.
->>>>>>> a8db28471283dd509520ca9c0ab5b302f8532ea8
                 </div>
                 {% endif %}
                 <div class="row align-items-end">
                     <div class="col-lg-8 col-md-8 col-sm-12">
                         <div class="form-group mb-3">
                             <label for="barcode-input">Entrada Rápida do Caixa</label>
-                            <input type="text" id="barcode-input" class="form-control form-control-sm" list="product-quick-search" placeholder="Leia o codigo de barras ou digite codigo/nome" autocomplete="off">
-                            <datalist id="product-quick-search">
-                                {% for product in products %}
-                                    <option value="{{ product.code }}">{{ product.name }}</option>
-                                    <option value="{{ product.name }}">{{ product.code }}</option>
-                                {% endfor %}
-                            </datalist>
+                            <input type="text" id="barcode-input" class="form-control form-control-sm" placeholder="Leia o codigo de barras ou digite codigo/nome" autocomplete="off">
+                            <datalist id="product-quick-search"></datalist>
                             <small class="text-muted">Ao ler ou digitar e confirmar, o produto entra direto na lista e fica como item selecionado.</small>
                         </div>
                     </div>
@@ -56,7 +47,7 @@
             </fieldset>
             <fieldset>
                 <div class="d-flex w-100" id="POS-field">
-                    <div class="col-8 bg-gradient bg-light border h-100">
+                    <div class="col-8 bg-gradient bg-light border h-100" style="overflow-y: auto; max-height: 400px;">
                         <table class="table table-bordered">
                             <colgroup>
                                 <col width="5%">
@@ -102,6 +93,7 @@
             </fieldset>
             <div class="row">
                 <div class="col-md-12 text-end">
+                    <button class="btn btn-danger btn-sm rounded-0 me-2" type="button" id="cancel_sale"><i class="mdi mdi-close"></i> Cancelar Venda</button>
                     <button class="btn btn-primary btn-sm rounded-0" type="button" id="check_out"><i class="mdi mdi-save"></i> Finalizar Compra</button>
                 </div>
             </div>
@@ -134,7 +126,7 @@
     var currentSelectedProductId = null
     var scannerBuffer = ''
     var scannerLastKeyAt = 0
-    var scannerPrimed = false
+    var scannerThresholdMs = 120
 
     function normalizeBarcode(value) {
         return String(value || '').replace(/\s+/g, '').trim();
@@ -170,6 +162,46 @@
 
     function formatBRL(value) {
         return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    }
+
+    function updateQuickSearchOptions(rawTerm) {
+        var input = $('#barcode-input')
+        var datalist = $('#product-quick-search')
+        var searchTerm = normalizeSearchTerm(rawTerm)
+        var barcodeTerm = normalizeBarcode(rawTerm)
+        var matches = []
+
+        datalist.empty()
+
+        if (!searchTerm && !barcodeTerm) {
+            input.removeAttr('list')
+            return
+        }
+
+        product_list.forEach(function(product) {
+            if (matches.length >= 20) {
+                return
+            }
+
+            var productName = normalizeSearchTerm(product.name)
+            var productCode = normalizeBarcode(product.code)
+            var matchesName = searchTerm && productName.indexOf(searchTerm) >= 0
+            var matchesCode = barcodeTerm && productCode.indexOf(barcodeTerm) >= 0
+
+            if (matchesName || matchesCode) {
+                matches.push(product)
+            }
+        })
+
+        if (matches.length <= 0) {
+            input.removeAttr('list')
+            return
+        }
+
+        matches.forEach(function(product) {
+            $('<option>').attr('value', product.code).text(product.name).appendTo(datalist)
+        })
+        input.attr('list', 'product-quick-search')
     }
 
     function setSelectedProduct(productId) {
@@ -221,7 +253,6 @@
     function resetScannerCapture() {
         scannerBuffer = ''
         scannerLastKeyAt = 0
-        scannerPrimed = false
     }
 
     function findProductByQuickEntry(rawValue) {
@@ -390,15 +421,24 @@
         return applySelectedProductQuantity()
     }
 
+    function focusBarcodeInput() {
+        $('#barcode-input').val('')
+        $('#barcode-input').removeAttr('list')
+        $('#product-quick-search').empty()
+        $('#barcode-input').trigger('focus')
+    }
+
     function addProductFromBarcode(rawValueOverride) {
         var quickValue = typeof rawValueOverride === 'string' ? rawValueOverride : $('#barcode-input').val()
         var resultData = findProductByQuickEntry(quickValue)
         if (!resultData.product) {
             showPosMessage(resultData.message, resultData.type || 'danger')
+            focusBarcodeInput()
             return false
         }
         var result = addProductToOrder(resultData.product, 1)
-        $('#barcode-input').val('')
+        focusBarcodeInput()
+        resetScannerCapture()
         return result
     }
 
@@ -419,17 +459,44 @@
         $('[name="sub_total"]').val(parseFloat(sub_total))
 
     }
+    function cancelSale() {
+        if (confirm('Tem certeza de que deseja cancelar a venda e limpar o carrinho? Todos os produtos serão removidos.') !== true) {
+            return false
+        }
+        $('#POS-field table tbody').empty()
+        currentSelectedProductId = null
+        $('#order-qty').val(1)
+        calc()
+        showPosMessage('Venda cancelada. Carrinho limpo.', 'warning')
+        focusBarcodeInput()
+        return true
+    }
+
     $(function() {
+        focusBarcodeInput()
+
+        $('#cancel_sale').click(function() {
+            cancelSale()
+        })
         $('#add_item').click(function() {
             addProductFromSelect()
         })
         $('#barcode-add').click(function() {
             addProductFromBarcode()
         })
+        $('#barcode-input').on('input', function() {
+            updateQuickSearchOptions($(this).val())
+        })
+        $('#barcode-input').on('focus', function() {
+            updateQuickSearchOptions($(this).val())
+        })
         $('#barcode-input').on('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault()
-                addProductFromBarcode()
+                // Aguarda o datalist aplicar a opcao escolhida antes de adicionar ao caixa.
+                setTimeout(function() {
+                    addProductFromBarcode()
+                }, 0)
             }
         })
         $(document).on('keydown', function(e) {
@@ -440,7 +507,7 @@
                 return
             }
             if (e.key === 'Enter') {
-                if (scannerPrimed && scannerBuffer.length >= 6) {
+                if (scannerBuffer.length >= 3) {
                     e.preventDefault()
                     $('#barcode-input').val(scannerBuffer)
                     addProductFromBarcode(scannerBuffer)
@@ -448,31 +515,24 @@
                 resetScannerCapture()
                 return
             }
-            if (!/^[0-9]$/.test(e.key)) {
+
+            if (e.key.length !== 1 || /\s/.test(e.key)) {
                 resetScannerCapture()
                 return
             }
 
             var now = Date.now()
-            if (scannerLastKeyAt && (now - scannerLastKeyAt) <= 50) {
-                if (!scannerPrimed && $(e.target).is('#order-qty, [name="qty[]"]')) {
-                    if (currentSelectedProductId) {
-                        var selectedRow = findOrderRow(currentSelectedProductId)
-                        if (selectedRow.length > 0) {
-                            $(e.target).val(selectedRow.find('[name="qty[]"]').val())
-                        }
-                    } else {
-                        $(e.target).val('1')
-                    }
-                }
-                scannerPrimed = true
-                scannerBuffer += e.key
-                e.preventDefault()
-            } else {
-                scannerBuffer = e.key
-                scannerPrimed = false
+
+            if (!scannerLastKeyAt || (now - scannerLastKeyAt) > scannerThresholdMs) {
+                scannerBuffer = ''
             }
+
+            scannerBuffer += e.key
             scannerLastKeyAt = now
+
+            if ($(e.target).is('#order-qty, [name="qty[]"]')) {
+                e.preventDefault()
+            }
         })
         $('#order-qty').on('keydown', function(e) {
             if (e.key === 'Enter') {
