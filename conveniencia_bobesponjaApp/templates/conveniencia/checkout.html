@@ -13,6 +13,38 @@
             <label for="payment_change" class="control-label">Troco</label>
             <input type="text" id="payment_change" class="form-control form-control-lg rounded-0 text-end" value="{{ 0|intcomma }}" required disabled>
         </div>
+        <div class="form-group mb-2">
+            <label class="control-label d-block mb-2">Forma de Pagamento <span class="text-danger">*</span></label>
+            <div class="d-flex flex-wrap gap-3">
+                <div class="form-check">
+                    <input class="form-check-input payment-method-main" type="checkbox" value="credito" id="payment_credito">
+                    <label class="form-check-label" for="payment_credito">Credito</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input payment-method-main" type="checkbox" value="debito" id="payment_debito">
+                    <label class="form-check-label" for="payment_debito">Debito</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input payment-method-main" type="checkbox" value="pix" id="payment_pix">
+                    <label class="form-check-label" for="payment_pix">Pix</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input payment-method-main" type="checkbox" value="dinheiro" id="payment_dinheiro">
+                    <label class="form-check-label" for="payment_dinheiro">Dinheiro</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="outro" id="payment_outro">
+                    <label class="form-check-label" for="payment_outro">Outro</label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group mb-3">
+            <label for="payment_other_detail" class="control-label">Detalhe do Outro (opcional)</label>
+            <input type="text" id="payment_other_detail" class="form-control rounded-0" maxlength="120" placeholder="Ex.: Vale, Fiado, Transferencia" disabled>
+        </div>
+        <div id="payment-method-alert" class="alert alert-danger rounded-0 d-none" role="alert">
+            Selecione pelo menos uma forma de pagamento principal: Credito, Debito, Pix ou Dinheiro.
+        </div>
     </form>
 </div>
 <script>
@@ -36,6 +68,36 @@
         $('#payable_amount').val(formatBRL(parseBRL($('#payable_amount').val())))
         $('#payment_change').val(formatBRL(0))
         $('#tendered_amount').val(formatBRL(0))
+        $('#payment_dinheiro').prop('checked', true)
+
+        function hidePaymentAlert() {
+            $('#payment-method-alert').addClass('d-none')
+        }
+
+        function getSelectedPaymentMethods() {
+            var methods = []
+            $('.payment-method-main:checked').each(function() {
+                methods.push($(this).val())
+            })
+            if ($('#payment_outro').is(':checked')) {
+                methods.push('outro')
+            }
+            return methods
+        }
+
+        $('.payment-method-main').on('change', function() {
+            if ($('.payment-method-main:checked').length > 0) {
+                hidePaymentAlert()
+            }
+        })
+
+        $('#payment_outro').on('change', function() {
+            var checked = $(this).is(':checked')
+            $('#payment_other_detail').prop('disabled', !checked)
+            if (!checked) {
+                $('#payment_other_detail').val('')
+            }
+        })
 
         $('#tendered_amount').on('focus', function() {
             $(this).val(parseBRL($(this).val()).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
@@ -64,6 +126,16 @@
                 alert("O valor pago é menor que o valor a pagar")
                 return false;
             }
+
+            var methods = getSelectedPaymentMethods()
+            if ($('.payment-method-main:checked').length <= 0) {
+                $('#payment-method-alert').removeClass('d-none')
+                return false
+            }
+
+            $('[name="payment_methods"]').val(methods.join(','))
+            $('[name="payment_other_detail"]').val($('#payment_outro').is(':checked') ? $('#payment_other_detail').val().trim() : '')
+
             $('#pos-form').submit()
         })
     })

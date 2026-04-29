@@ -1,4 +1,6 @@
 import os
+import socket
+import ipaddress
 from django.apps import AppConfig
 from pathlib import Path
 
@@ -23,13 +25,75 @@ def get_env_list(name, default=None):
     return [item.strip() for item in raw_value.split(',') if item.strip()]
 
 
+def get_env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def get_local_hosts():
+    hosts = {'127.0.0.1', 'localhost', '0.0.0.0'}
+
+    try:
+        hostname = socket.gethostname()
+        if hostname:
+            hosts.add(hostname)
+        fqdn = socket.getfqdn()
+        if fqdn:
+            hosts.add(fqdn)
+        for _, _, _, _, sockaddr in socket.getaddrinfo(hostname, None):
+            address = sockaddr[0]
+            if address:
+                hosts.add(address)
+    except OSError:
+        pass
+
+    return sorted(hosts)
+
+
+def is_valid_host_for_origin(host):
+    if not host or host in {'*', '0.0.0.0'}:
+        return False
+
+    candidate = host.strip().lstrip('.').split(':', 1)[0]
+    if not candidate:
+        return False
+
+    if candidate.lower() == 'localhost':
+        return True
+
+    try:
+        ipaddress.ip_address(candidate)
+        return True
+    except ValueError:
+        pass
+
+    return all(part and part.replace('-', '').isalnum() for part in candidate.split('.'))
+
+
+def build_csrf_trusted_origins(hosts, scheme):
+    valid_scheme = scheme if scheme in {'http', 'https'} else 'https'
+    origins = []
+    for host in hosts:
+        normalized = host.strip().lstrip('.')
+        if not is_valid_host_for_origin(normalized):
+            continue
+        origins.append(f'{valid_scheme}://{normalized}')
+    return sorted(set(origins))
+
+
 load_env_file(BASE_DIR / '.env')
 
 SECRET_KEY = 'django-insecure-9qeew0dcs+4ti&1+lg_q1bc3gd-gyhq%7sb%whr%eb=ou5n+0q'
 
-DEBUG = True
+DEBUG = get_env_bool('DJANGO_DEBUG', True)
 
-ALLOWED_HOSTS = get_env_list('DJANGO_ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
+configured_hosts = get_env_list('DJANGO_ALLOWED_HOSTS', [])
+ALLOWED_HOSTS = sorted(set(configured_hosts + get_local_hosts()))
+
+if DEBUG:
+    ALLOWED_HOSTS.append('*')
 
 
 # Application definition
@@ -148,3 +212,26 @@ EMAIL_BACKEND = os.getenv(
     'django.core.mail.backends.smtp.EmailBackend' if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD else 'django.core.mail.backends.console.EmailBackend'
 )
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@sistema-vendas.local')
+
+# HTTPS defaults and security
+DEFAULT_SCHEME = os.getenv('DJANGO_DEFAULT_SCHEME', 'https').strip().lower() or 'https'
+FORCE_HTTPS = get_env_bool('DJANGO_FORCE_HTTPS', False)
+
+configured_csrf_origins = get_env_list('DJANGO_CSRF_TRUSTED_ORIGINS', [])
+auto_csrf_origins = build_csrf_trusted_origins(ALLOWED_HOSTS, DEFAULT_SCHEME)
+CSRF_TRUSTED_ORIGINS = sorted(set(configured_csrf_origins + auto_csrf_origins))
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = FORCE_HTTPS
+
+SESSION_COOKIE_SECURE = FORCE_HTTPS
+CSRF_COOKIE_SECURE = FORCE_HTTPS
+
+if FORCE_HTTPS:
+    SECURE_HSTS_SECONDS = int(os.getenv('DJANGO_HSTS_SECONDS', '31536000'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+else:
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False

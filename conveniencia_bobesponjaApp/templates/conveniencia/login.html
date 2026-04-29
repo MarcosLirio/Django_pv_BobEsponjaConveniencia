@@ -77,10 +77,34 @@
 
                                     <hr>
                                     <div class="text-center mb-3 d-flex flex-column gap-2">
+                                        {% if can_self_register_initial %}
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="show-register-form">
+                                            Criar conta de administrador
+                                        </button>
+                                        {% endif %}
                                         <button type="button" class="btn btn-outline-warning btn-sm" id="show-forgot-form">
                                             Esqueceu sua senha?
                                         </button>
                                     </div>
+
+                                    {% if can_self_register_initial %}
+                                    <form id="initial-register-form" style="display:none;" class="mt-3">
+                                        {% csrf_token %}
+                                        <div class="mb-2">
+                                            <input type="text" class="form-control" name="username" placeholder="Nome de usuário" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input type="email" class="form-control" name="email" placeholder="E-mail (opcional)">
+                                        </div>
+                                        <div class="mb-2">
+                                            <input type="password" class="form-control" name="password" placeholder="Senha" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input type="password" class="form-control" name="confirm_password" placeholder="Confirmar senha" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100">Criar administrador inicial</button>
+                                    </form>
+                                    {% endif %}
 
                                     <form id="forgot-password-form" style="display:none;" class="mt-3">
                                         {% csrf_token %}
@@ -150,8 +174,54 @@
     <script src="{% static 'conveniencia_App/assets/material-admin/js/dashboard.js' %}"></script>
     <script>
         $(function() {
+            $('#show-register-form').click(function() {
+                $('#initial-register-form').slideToggle('fast')
+            })
+
             $('#show-forgot-form').click(function() {
                 $('#forgot-password-form').slideToggle('fast')
+            })
+
+            $('#initial-register-form').submit(function(e) {
+                e.preventDefault();
+                var _this = $(this)
+                $('.register-msg').remove();
+                var el = $('<div>')
+                el.addClass("alert register-msg mt-2")
+                el.hide()
+                start_loader();
+                $.ajax({
+                    headers: {
+                        "X-CSRFToken": '{{csrf_token}}'
+                    },
+                    url: "{% url 'register-user' %}",
+                    data: new FormData($(this)[0]),
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    method: 'POST',
+                    type: 'POST',
+                    dataType: 'json',
+                    error: err => {
+                        console.log(err)
+                        end_loader();
+                    },
+                    success: function(resp) {
+                        if (!!resp.msg) {
+                            el.removeClass('alert-danger alert-success').addClass(resp.status === 'success' ? 'alert alert-success register-msg mt-2' : 'alert alert-danger register-msg mt-2')
+                            el.text(resp.msg)
+                            _this.prepend(el)
+                            el.show('slow')
+                        }
+                        if (resp.status === 'success') {
+                            _this[0].reset()
+                            setTimeout(function() {
+                                location.reload()
+                            }, 1200)
+                        }
+                        end_loader()
+                    }
+                })
             })
 
 

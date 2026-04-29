@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 echo ==============================================
-echo Liberando porta 8000 no Firewall do Windows
+echo Liberando portas 8000 a 8010 no Firewall do Windows
 echo ==============================================
 echo Execute este arquivo como Administrador.
 echo.
@@ -17,7 +17,7 @@ if not "%errorlevel%"=="0" (
     exit /b 1
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "if (-not (Get-NetFirewallRule -DisplayName 'Django8000' -ErrorAction SilentlyContinue)) { New-NetFirewallRule -DisplayName 'Django8000' -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow | Out-Null; Write-Host 'Regra criada com sucesso.' } else { Write-Host 'A regra Django8000 ja existe.' }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "if (-not (Get-NetFirewallRule -DisplayName 'Django8000a8010' -ErrorAction SilentlyContinue)) { New-NetFirewallRule -DisplayName 'Django8000a8010' -Direction Inbound -Protocol TCP -LocalPort 8000-8010 -Action Allow | Out-Null; Write-Host 'Regra criada com sucesso.' } else { Write-Host 'A regra Django8000a8010 ja existe.' }"
 
 if errorlevel 1 (
     echo.
@@ -27,7 +27,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo Porta 8000 liberada no firewall.
+echo Portas 8000 a 8010 liberadas no firewall.
 echo Agora execute iniciar_rede_local.bat e teste o acesso pelo IP desta maquina.
 echo.
 pause

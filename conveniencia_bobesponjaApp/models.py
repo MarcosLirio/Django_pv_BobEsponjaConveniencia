@@ -43,8 +43,21 @@ class Sales(models.Model):
 
     tendered = models.FloatField(default=0)
     amount_change = models.FloatField(default=0)
+    payment_methods = models.CharField(max_length=100, default='DINHEIRO')
+    payment_other_detail = models.CharField(max_length=120, blank=True, default='')
     date_added = models.DateTimeField(default=timezone.now)
     date_updated = models.DateTimeField(auto_now=True)
+
+    def get_payment_methods_display(self):
+        labels = {
+            'CREDITO': 'Credito',
+            'DEBITO': 'Debito',
+            'PIX': 'Pix',
+            'DINHEIRO': 'Dinheiro',
+            'OUTRO': 'Outro',
+        }
+        methods = [m.strip().upper() for m in (self.payment_methods or '').split(',') if m.strip()]
+        return ', '.join(labels.get(method, method.title()) for method in methods)
 
 
 class Salesitems(models.Model):

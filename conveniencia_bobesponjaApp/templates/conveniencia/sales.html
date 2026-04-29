@@ -37,9 +37,10 @@
                     <col width="16%">
                     <col width="16%">
                     <col width="16%">
-                    <col width="18%">
+                    <col width="14%">
+                    <col width="14%">
                     <col width="10%">
-                    <col width="13%">
+                    <col width="11%">
                 </colgroup>
                 <thead>
                     <tr>
@@ -47,6 +48,7 @@
                         <th class="text-center py-1">Data/Hora</th>
                         <th class="text-center py-1">Código Trans.</th>
                         <th class="text-center py-1">Usuário</th>
+                        <th class="text-center py-1">Pagamento</th>
                         <th class="text-center py-1">Total</th>
                         <th class="text-center py-1">Itens</th>
                         <th class="text-center py-1">Ação</th>
@@ -59,6 +61,12 @@
                         <td class="px-2 py-1 text-start">{{ sale.date_added|date:'Y-m-d H:i' }}</td>
                         <td class="px-2 py-1 text-start">{{ sale.code }}</td>
                         <td class="px-2 py-1 text-center">{{ sale.cashier }}</td>
+                        <td class="px-2 py-1 text-start">
+                            {{ sale.payment_methods_display }}
+                            {% if sale.payment_other_detail %}
+                            <br><small class="text-muted">{{ sale.payment_other_detail }}</small>
+                            {% endif %}
+                        </td>
                         <td class="px-2 py-1 text-end">R$ {{ sale.grand_total|floatformat:2|intcomma }}</td>
                         <td class="px-2 py-1 text-center">{{ sale.item_count|intcomma }}</td>
                         <td class="px-2 py-1 text-center">

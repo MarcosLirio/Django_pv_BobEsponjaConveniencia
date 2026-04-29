@@ -82,6 +82,16 @@ def about(request):
     return render(request, 'conveniencia/about.html', context)
 
 
+def login_page(request):
+    if request.user.is_authenticated:
+        return redirect('home-page')
+
+    context = {
+        'can_self_register_initial': not User.objects.exists(),
+    }
+    return render(request, 'conveniencia/login.html', context)
+
+
 #Login
 def login_user(request):
     logout(request)
@@ -107,31 +117,41 @@ def login_user(request):
 def register_user(request):
     resp = {"status": 'failed', 'msg': ''}
     if request.method == 'POST':
-        if not request.user.is_authenticated or not request.user.is_superuser:
-            resp['msg'] = 'Apenas administradores podem criar novos usuários.'
-            return HttpResponse(json.dumps(resp), content_type='application/json', status=403)
-
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
         confirm_password = request.POST.get('confirm_password', '')
-        is_admin = request.POST.get('is_admin', '').lower() in ['1', 'true', 'on', 'yes']
 
         if not username or not password:
             resp['msg'] = 'Preencha os campos obrigatórios.'
         elif password != confirm_password:
             resp['msg'] = 'As senhas não coincidem.'
-        elif User.objects.filter(username=username).exists():
-            resp['msg'] = 'Este nome de usuário já está em uso.'
         else:
             try:
-                user = User.objects.create_user(username=username, email=email, password=password)
-                user.is_superuser = is_admin
-                user.is_staff = is_admin
-                user.is_active = True
-                user.save(update_fields=['is_superuser', 'is_staff', 'is_active'])
+                with transaction.atomic():
+                    first_user_registration = not User.objects.exists()
+
+                    if not first_user_registration and (not request.user.is_authenticated or not request.user.is_superuser):
+                        resp['msg'] = 'Cadastro inicial já foi concluído. Apenas administradores podem criar novos usuários.'
+                        return HttpResponse(json.dumps(resp), content_type='application/json', status=403)
+
+                    if User.objects.filter(username=username).exists():
+                        resp['msg'] = 'Este nome de usuário já está em uso.'
+                        return HttpResponse(json.dumps(resp), content_type='application/json')
+
+                    is_admin = first_user_registration or request.POST.get('is_admin', '').lower() in ['1', 'true', 'on', 'yes']
+
+                    user = User.objects.create_user(username=username, email=email, password=password)
+                    user.is_superuser = is_admin
+                    user.is_staff = is_admin
+                    user.is_active = True
+                    user.save(update_fields=['is_superuser', 'is_staff', 'is_active'])
+
                 resp['status'] = 'success'
-                resp['msg'] = 'Administrador criado com sucesso.' if is_admin else 'Vendedor criado com sucesso.'
+                if first_user_registration:
+                    resp['msg'] = 'Conta inicial criada com sucesso. Você já pode entrar como administrador.'
+                else:
+                    resp['msg'] = 'Administrador criado com sucesso.' if is_admin else 'Vendedor criado com sucesso.'
             except Exception:
                 resp['msg'] = 'Não foi possível criar o usuário.'
     return HttpResponse(json.dumps(resp), content_type='application/json')
@@ -152,7 +172,11 @@ def forgot_password(request):
             else:
                 try:
                     temp_password = get_random_string(10)
-                    change_url = request.build_absolute_uri(reverse('change-password-page')) + f'?identifier={email}'
+                    base_change_url = request.build_absolute_uri(reverse('change-password-page'))
+                    preferred_scheme = getattr(settings, 'DEFAULT_SCHEME', 'https')
+                    if preferred_scheme in {'http', 'https'}:
+                        base_change_url = base_change_url.replace('http://', f'{preferred_scheme}://', 1).replace('https://', f'{preferred_scheme}://', 1)
+                    change_url = f'{base_change_url}?identifier={email}'
                     plain_message = (
                         f'Olá, {user.username}!\n\n'
                         f'Sua nova senha temporária é: {temp_password}\n\n'
@@ -381,6 +405,9 @@ def logoutuser(request):
 
 @login_required
 def home(request):
+    if not request.user or not hasattr(request.user, 'is_authenticated') or not request.user.is_authenticated:
+        return redirect('login')
+    
     now = datetime.now()
     current_year = now.strftime("%Y")
     current_month = now.strftime("%m")
@@ -637,6 +664,23 @@ def save_pos(request):
         product_ids = data.getlist('product_id[]')
         quantities = data.getlist('qty[]')
         prices = data.getlist('price[]')
+        raw_payment_methods = data.get('payment_methods', '')
+        requested_payment_methods = [m.strip().lower() for m in str(raw_payment_methods).split(',') if m.strip()]
+        main_payment_methods = {'credito', 'debito', 'pix', 'dinheiro'}
+        allowed_payment_methods = main_payment_methods.union({'outro'})
+        invalid_methods = [m for m in requested_payment_methods if m not in allowed_payment_methods]
+        if invalid_methods:
+            raise ValueError('Forma de pagamento invalida informada.')
+        if not any(m in main_payment_methods for m in requested_payment_methods):
+            raise ValueError('Selecione pelo menos uma forma de pagamento principal (Credito, Debito, Pix ou Dinheiro).')
+
+        payment_other_detail = str(data.get('payment_other_detail', '')).strip()
+        if 'outro' not in requested_payment_methods:
+            payment_other_detail = ''
+        if len(payment_other_detail) > 120:
+            raise ValueError('O campo Outro deve ter no maximo 120 caracteres.')
+
+        payment_methods_value = ','.join(method.upper() for method in requested_payment_methods)
         sale_items_payload = []
         computed_sub_total = 0
 
@@ -685,7 +729,9 @@ def save_pos(request):
                 sub_total=computed_sub_total,
                 grand_total=computed_sub_total,
                 tendered=data['tendered_amount'],
-                amount_change=data['amount_change']
+                amount_change=data['amount_change'],
+                payment_methods=payment_methods_value,
+                payment_other_detail=payment_other_detail,
             )
             sale.save()
             sale_id = sale.pk
@@ -721,6 +767,8 @@ def salesList(request):
         data['items'] = Salesitems.objects.filter(sale_id = sale).all()
         data['item_count'] = len(data['items'])
         data['cashier'] = sale.user.username if sale.user else 'Sistema'
+        data['payment_methods_display'] = sale.get_payment_methods_display() or '-'
+        data['payment_other_detail'] = sale.payment_other_detail
         sale_data.append(data)
     context = {
         'page_title':'Transações de Vendas',
@@ -741,9 +789,12 @@ def receipt(request):
         if field.related_model is None:
             transaction[field.name] = getattr(sales_obj,field.name)
     ItemList = Salesitems.objects.filter(sale_id = sales_obj).all()
+    payment_methods_display = sales_obj.get_payment_methods_display() or '-'
     context = {
         "transaction" : transaction,
-        "salesItems" : ItemList
+        "salesItems" : ItemList,
+        "payment_methods_display": payment_methods_display,
+        "payment_other_detail": sales_obj.payment_other_detail,
     }
 
     return render(request, 'conveniencia/receipt.html',context)
@@ -856,7 +907,7 @@ def generate_sales_report(request):
     elements.append(Paragraph('<b>Detalhamento de Vendas</b>', styles['Heading2']))
     elements.append(Spacer(1, 0.15*inch))
     
-    sales_data = [['Data/Hora', 'Código', 'Produto', 'Qtd', 'Subtotal']]
+    sales_data = [['Data/Hora', 'Código', 'Pagamento', 'Produto', 'Qtd', 'Subtotal']]
     date_row_indices = []
     daily_total_row_indices = []
     current_date = None
@@ -879,12 +930,16 @@ def generate_sales_report(request):
         
         sale_items = Salesitems.objects.filter(sale_id=sale).all()
         if sale_items:
+            payment_label = sale.get_payment_methods_display() or '-'
+            if sale.payment_other_detail:
+                payment_label = f"{payment_label} ({sale.payment_other_detail})"
             for item in sale_items:
                 item_subtotal = item.total_price if hasattr(item, 'total_price') else float(item.qty) * float(item.price)
                 daily_total += item_subtotal
                 sales_data.append([
                     sale.date_added.strftime('%d/%m/%Y %H:%M'),
                     sale.code,
+                    payment_label,
                     item.product_id.name if item.product_id else '-',
                     str(item.qty),
                     format_brl(item_subtotal)
@@ -892,9 +947,13 @@ def generate_sales_report(request):
         else:
             line_subtotal = float(sale.sub_total)
             daily_total += line_subtotal
+            payment_label = sale.get_payment_methods_display() or '-'
+            if sale.payment_other_detail:
+                payment_label = f"{payment_label} ({sale.payment_other_detail})"
             sales_data.append([
                 sale.date_added.strftime('%d/%m/%Y %H:%M'),
                 sale.code,
+                payment_label,
                 '-',
                 '0',
                 format_brl(line_subtotal)
@@ -903,8 +962,8 @@ def generate_sales_report(request):
     if current_date is not None:
         append_daily_total(daily_total)
     if len(sales_data) > 1:
-        sales_data.append(['', '', '', 'TOTAL', format_brl(total_valor)])
-        sales_table = Table(sales_data, colWidths=[1.5*inch, 1.1*inch, 2.6*inch, 0.8*inch, 1.2*inch], repeatRows=1)
+        sales_data.append(['', '', '', '', 'TOTAL', format_brl(total_valor)])
+        sales_table = Table(sales_data, colWidths=[1.1*inch, 0.9*inch, 1.7*inch, 2.0*inch, 0.55*inch, 1.05*inch], repeatRows=1)
         table_style = TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0066cc')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -916,12 +975,12 @@ def generate_sales_report(request):
             ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e9ecef')),
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
             ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ('ALIGN', (2, 1), (2, -2), 'LEFT'),
-            ('ALIGN', (4, 1), (4, -1), 'RIGHT'),
-            ('SPAN', (0, -1), (3, -1)),
+            ('ALIGN', (2, 1), (3, -2), 'LEFT'),
+            ('ALIGN', (5, 1), (5, -1), 'RIGHT'),
+            ('SPAN', (0, -1), (4, -1)),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
             ('FONTSIZE', (0, -1), (-1, -1), 10),
-            ('ALIGN', (0, -1), (3, -1), 'RIGHT'),
+            ('ALIGN', (0, -1), (4, -1), 'RIGHT'),
         ])
         for row_idx in date_row_indices:
             table_style.add('SPAN', (0, row_idx), (-1, row_idx))
@@ -930,11 +989,11 @@ def generate_sales_report(request):
             table_style.add('ALIGN', (0, row_idx), (-1, row_idx), 'LEFT')
             table_style.add('FONTSIZE', (0, row_idx), (-1, row_idx), 9)
         for row_idx in daily_total_row_indices:
-            table_style.add('SPAN', (0, row_idx), (3, row_idx))
+            table_style.add('SPAN', (0, row_idx), (4, row_idx))
             table_style.add('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor('#f7f7f7'))
             table_style.add('FONTNAME', (0, row_idx), (-1, row_idx), 'Helvetica-Bold')
             table_style.add('FONTSIZE', (0, row_idx), (-1, row_idx), 10)
-            table_style.add('ALIGN', (0, row_idx), (3, row_idx), 'RIGHT')
+            table_style.add('ALIGN', (0, row_idx), (4, row_idx), 'RIGHT')
         sales_table.setStyle(table_style)
         elements.append(sales_table)
     else:
