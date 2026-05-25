@@ -1,0 +1,51 @@
+<div class="container-fluid">
+    <style>
+        .modal-headline { background: #f7fbff; border-left: 3px solid #2f6690; padding: .55rem .65rem; margin-bottom: .75rem; font-size: .82rem; }
+    </style>
+    <form id="supplier-price-form">
+        <div class="modal-headline">Compare e salve o melhor custo por produto</div>
+        <input type="hidden" name="id" value="{% if price_entry.pk %}{{ price_entry.pk }}{% endif %}">
+        <div class="form-group mb-2">
+            <label for="supplier_id">Fornecedor</label>
+            <select name="supplier_id" id="supplier_id" class="form-select form-select-sm rounded-0" required>
+                <option value="">Selecione</option>
+                {% for s in suppliers %}
+                <option value="{{ s.id }}" {% if price_entry.supplier_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group mb-2">
+            <label for="product_id">Produto</label>
+            <select name="product_id" id="product_id" class="form-select form-select-sm rounded-0" required>
+                <option value="">Selecione</option>
+                {% for p in products %}
+                <option value="{{ p.id }}" {% if price_entry.product_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group mb-2">
+            <label for="price">Preço</label>
+            <input type="number" min="0.01" step="0.01" name="price" id="price" class="form-control form-control-sm rounded-0" value="{% if price_entry.price %}{{ price_entry.price }}{% endif %}" required>
+        </div>
+        <div class="form-group mb-2">
+            <label for="notes">Observação</label>
+            <input type="text" name="notes" id="notes" class="form-control form-control-sm rounded-0" value="{% if price_entry.notes %}{{ price_entry.notes }}{% endif %}">
+        </div>
+    </form>
+</div>
+<script>
+$(function(){
+    $('#supplier-price-form').submit(function(e){
+        e.preventDefault()
+        var _this=$(this)
+        start_loader()
+        $.ajax({
+            headers:{'X-CSRFToken':'{{csrf_token}}'},
+            url:'{% url "save-supplier-price-page" %}',
+            data:new FormData(_this[0]), cache:false, contentType:false, processData:false, method:'POST', dataType:'json',
+            success:function(resp){ if(resp.status==='success'){location.reload()} else { alert(resp.msg || 'Erro ao salvar registro.'); end_loader()} },
+            error:function(){ end_loader() }
+        })
+    })
+})
+</script>

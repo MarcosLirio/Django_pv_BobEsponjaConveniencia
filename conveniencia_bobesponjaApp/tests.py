@@ -1,8 +1,5 @@
 import json
-<<<<<<< HEAD
 from datetime import datetime
-=======
->>>>>>> a8db28471283dd509520ca9c0ab5b302f8532ea8
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -10,7 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Categorys, Products, Sales, Salesitems
+from .models import Categorys, Customers, Products, Sales, Salesitems
 from .views import is_overnight_period
 
 
@@ -79,6 +76,50 @@ class ProductManagementTests(TestCase):
 		self.assertEqual(self.product.quantity, 11)
 		self.assertEqual(self.product.price, 9.9)
 		self.assertEqual(self.product.overnight_price, 12.5)
+
+	def test_manage_product_edit_keeps_current_category_selected(self):
+		self.client.force_login(self.admin)
+
+		response = self.client.get(
+			reverse('manage_product-page'),
+			{'id': str(self.product.id)},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(
+			response,
+			f'<option value="{self.category.id}" selected>{self.category.name}</option>',
+			html=True,
+		)
+
+	def test_save_product_generates_internal_code_for_product_without_barcode(self):
+		self.client.force_login(self.admin)
+
+		response = self.client.post(
+			reverse('save-product-page'),
+			{
+				'id': '',
+				'code': '',
+				'product_without_barcode': '1',
+				'category_id': str(self.category.id),
+				'name': 'Dose de Whisky',
+				'description': 'Produto sem codigo de barras',
+				'price': '12.00',
+				'overnight_price': '15.00',
+				'quantity': '0',
+				'infinite_stock': '1',
+				'status': '1',
+			},
+		)
+
+		payload = json.loads(response.content)
+		created_product = Products.objects.exclude(id=self.product.id).get(name='Dose de Whisky')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertTrue(created_product.code.startswith('29'))
+		self.assertEqual(len(created_product.code), 13)
+		self.assertTrue(created_product.infinite_stock)
 
 
 class PosBarcodeFlowTests(TestCase):
@@ -223,7 +264,7 @@ class PosBarcodeFlowTests(TestCase):
 		self.assertEqual(item.total_price, 27.0)
 
 	@patch('conveniencia_bobesponjaApp.views.is_overnight_period', return_value=True)
-	def test_save_pos_rejects_client_price_when_it_differs_from_overnight_price(self, _mocked_period):
+	def test_save_pos_allows_discounted_price_below_overnight_price(self, _mocked_period):
 		self.client.force_login(self.user)
 
 		response = self.client.post(
@@ -240,10 +281,338 @@ class PosBarcodeFlowTests(TestCase):
 		)
 
 		payload = json.loads(response.content)
+		item = Salesitems.objects.get()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertEqual(item.price, 10.5)
+		self.assertEqual(item.total_price, 21.0)
+
+	def test_save_pos_allows_price_above_current_product_price(self):
+		self.client.force_login(self.user)
+
+		response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sub_total': '24.0',
+				'grand_total': '24.0',
+				'tendered_amount': '25.0',
+				'amount_change': '1.0',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['2'],
+				'price[]': ['12.0'],
+			},
+		)
+
+		payload = json.loads(response.content)
+		item = Salesitems.objects.get()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertEqual(item.price, 12.0)
+		self.assertEqual(item.total_price, 24.0)
+
+	def test_save_pos_keeps_infinite_stock_without_decrement(self):
+		self.client.force_login(self.user)
+		self.product.infinite_stock = True
+		self.product.quantity = 0
+		self.product.save(update_fields=['infinite_stock', 'quantity'])
+
+		response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sub_total': '21.0',
+				'grand_total': '21.0',
+				'tendered_amount': '25.0',
+				'amount_change': '4.0',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['2'],
+				'price[]': ['10.5'],
+			},
+		)
+
+		payload = json.loads(response.content)
+		self.product.refresh_from_db()
+		item = Salesitems.objects.get()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertEqual(item.qty, 2)
+		self.assertEqual(item.total_price, 21.0)
+		self.assertEqual(self.product.quantity, 0)
+
+	def test_save_pos_rejects_fractional_quantity_even_for_infinite_stock_product(self):
+		self.client.force_login(self.user)
+		self.product.infinite_stock = True
+		self.product.quantity = 0
+		self.product.save(update_fields=['infinite_stock', 'quantity'])
+
+		response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sub_total': '5.25',
+				'grand_total': '5.25',
+				'tendered_amount': '10.0',
+				'amount_change': '4.75',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['0.5'],
+				'price[]': ['10.5'],
+			},
+		)
+
+		payload = json.loads(response.content)
 
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(payload['status'], 'failed')
-		self.assertIn('mudou', payload['msg'])
+		self.assertIn('nao permite quantidade fracionada', payload['msg'])
+		self.assertEqual(Sales.objects.count(), 0)
+		self.assertEqual(Salesitems.objects.count(), 0)
+
+	def test_save_pos_opens_comanda_without_decrementing_stock(self):
+		self.client.force_login(self.user)
+		customer = Customers.objects.create(name='Cliente Teste', phone='123456789')
+
+		response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sale_action': 'open_comanda',
+				'comanda_code': '12',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['2'],
+				'price[]': ['10.5'],
+				'customer_id': str(customer.id),
+			},
+		)
+
+		payload = json.loads(response.content)
+		self.product.refresh_from_db()
+		sale = Sales.objects.get()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertEqual(payload['sale_action'], 'open_comanda')
+		self.assertEqual(sale.status, Sales.STATUS_OPEN)
+		self.assertEqual(sale.comanda_code, '12')
+		self.assertEqual(sale.sub_total, 21.0)
+		self.assertEqual(sale.grand_total, 21.0)
+		self.assertEqual(sale.customer_id, customer.id)
+		self.assertEqual(Salesitems.objects.get().qty, 2)
+		self.assertEqual(self.product.quantity, 8)
+
+	def test_save_pos_converts_partial_payment_to_open_comanda_with_outro(self):
+		self.client.force_login(self.user)
+		customer = Customers.objects.create(name='Cliente Teste', phone='123456789')
+
+		response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sale_action': 'checkout',
+				'comanda_code': '12',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['2'],
+				'price[]': ['10.5'],
+				'customer_id': str(customer.id),
+				'tendered_amount': '10.0',
+				'amount_change': '-10.0',
+				'payment_methods': 'outro',
+				'payment_other_detail': 'Fiado',
+			},
+		)
+
+		payload = json.loads(response.content)
+		sale = Sales.objects.get()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertEqual(payload['sale_action'], 'open_comanda')
+		self.assertEqual(sale.status, Sales.STATUS_OPEN)
+		self.assertEqual(sale.comanda_code, '12')
+		self.assertEqual(sale.tendered, 10.0)
+		self.assertEqual(sale.grand_total, 21.0)
+		self.assertEqual(sale.amount_change, -11.0)
+		self.assertEqual(sale.payment_methods, 'OUTRO')
+
+	def test_save_pos_converts_partial_payment_to_open_comanda_without_customer(self):
+		self.client.force_login(self.user)
+
+		response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sale_action': 'checkout',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['2'],
+				'price[]': ['10.5'],
+				'tendered_amount': '10.0',
+				'amount_change': '-10.0',
+				'payment_methods': 'outro',
+				'payment_other_detail': 'Fiado',
+			},
+		)
+
+		payload = json.loads(response.content)
+		sale = Sales.objects.get()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertEqual(payload['sale_action'], 'open_comanda')
+		self.assertEqual(sale.status, Sales.STATUS_OPEN)
+		self.assertIsNone(sale.customer_id)
+		self.assertTrue(sale.comanda_code.startswith('COMANDA-'))
+		self.assertEqual(sale.tendered, 10.0)
+		self.assertEqual(sale.grand_total, 21.0)
+		self.assertEqual(sale.payment_methods, 'OUTRO')
+
+	def test_save_pos_allows_open_comanda_without_customer(self):
+		self.client.force_login(self.user)
+
+		response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sale_action': 'open_comanda',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['2'],
+				'price[]': ['10.5'],
+			},
+		)
+
+		payload = json.loads(response.content)
+		sale = Sales.objects.get()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertEqual(payload['sale_action'], 'open_comanda')
+		self.assertEqual(sale.status, Sales.STATUS_OPEN)
+		self.assertEqual(sale.customer, None)
+		self.assertTrue(sale.comanda_code.startswith('COMANDA-'))
+		self.assertEqual(Salesitems.objects.get().qty, 2)
+
+	def test_save_pos_opens_comanda_with_customer_name_only(self):
+		self.client.force_login(self.user)
+
+		response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sale_action': 'open_comanda',
+				'comanda_code': '12',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['2'],
+				'price[]': ['10.5'],
+				'customer_name': 'Cliente Nome Teste',
+			},
+		)
+
+		payload = json.loads(response.content)
+		sale = Sales.objects.get()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertEqual(payload['sale_action'], 'open_comanda')
+		self.assertEqual(sale.status, Sales.STATUS_OPEN)
+		self.assertEqual(sale.comanda_code, '12')
+		self.assertEqual(sale.sub_total, 21.0)
+		self.assertEqual(sale.grand_total, 21.0)
+		self.assertTrue(sale.customer_id > 0)
+		self.assertEqual(sale.customer.name, 'Cliente Nome Teste')
+		self.assertEqual(Salesitems.objects.get().qty, 2)
+
+	def test_save_pos_opens_comanda_with_existing_customer_name_case_insensitive(self):
+		self.client.force_login(self.user)
+		Customers.objects.create(name='cliente teste', phone='999999999')
+
+		response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sale_action': 'open_comanda',
+				'comanda_code': '12',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['2'],
+				'price[]': ['10.5'],
+				'customer_name': 'Cliente Teste',
+			}
+		)
+
+		payload = json.loads(response.content)
+		sale = Sales.objects.get()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertEqual(payload['sale_action'], 'open_comanda')
+		self.assertEqual(sale.customer_id, 1)
+		self.assertEqual(sale.customer.name.lower(), 'cliente teste')
+		self.assertEqual(Salesitems.objects.get().qty, 2)
+
+	def test_save_pos_resolves_existing_customer_name_with_extra_spaces(self):
+		self.client.force_login(self.user)
+		Customers.objects.create(name='Cliente Teste', phone='999999999')
+
+		response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sale_action': 'open_comanda',
+				'comanda_code': '12',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['2'],
+				'price[]': ['10.5'],
+				'customer_name': '  Cliente   Teste  ',
+			}
+		)
+
+		payload = json.loads(response.content)
+		sale = Sales.objects.get()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertEqual(payload['sale_action'], 'open_comanda')
+		self.assertEqual(sale.customer_id, 1)
+		self.assertEqual(sale.customer.name, 'Cliente Teste')
+		self.assertEqual(Salesitems.objects.get().qty, 2)
+
+	def test_save_pos_finalizes_existing_open_comanda_with_discount(self):
+		self.client.force_login(self.user)
+		open_sale = Sales.objects.create(
+			user=self.user,
+			code='2026202600099',
+			status=Sales.STATUS_OPEN,
+			comanda_code='15',
+			sub_total=0,
+			grand_total=0,
+		)
+
+		response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sale_id': str(open_sale.id),
+				'sale_action': 'checkout',
+				'comanda_code': '15',
+				'sub_total': '21.0',
+				'grand_total': '18.9',
+				'tendered_amount': '20.0',
+				'amount_change': '1.1',
+				'discount_type': 'PERCENT',
+				'discount_value': '10',
+				'payment_methods': 'dinheiro',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['2'],
+				'price[]': ['10.5'],
+			},
+		)
+
+		payload = json.loads(response.content)
+		self.product.refresh_from_db()
+		open_sale.refresh_from_db()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(payload['status'], 'success')
+		self.assertEqual(payload['sale_id'], open_sale.id)
+		self.assertEqual(open_sale.status, Sales.STATUS_CLOSED)
+		self.assertEqual(open_sale.discount_type, Sales.DISCOUNT_TYPE_PERCENT)
+		self.assertEqual(open_sale.discount_value, 10.0)
+		self.assertEqual(open_sale.discount_amount, 2.1)
+		self.assertEqual(open_sale.grand_total, 18.9)
+		self.assertEqual(open_sale.tendered, 20.0)
+		self.assertEqual(open_sale.amount_change, 1.1)
+		self.assertEqual(Salesitems.objects.filter(sale_id=open_sale).count(), 1)
+		self.assertEqual(self.product.quantity, 6)
 
 
 class SalesPresentationTests(TestCase):

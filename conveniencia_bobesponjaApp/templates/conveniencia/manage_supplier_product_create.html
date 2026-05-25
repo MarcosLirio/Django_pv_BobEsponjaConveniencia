@@ -1,0 +1,190 @@
+<div class="container-fluid">
+    <style>
+        .modal-headline { background: #f7fbff; border-left: 3px solid #2f6690; padding: .55rem .65rem; margin-bottom: .75rem; font-size: .82rem; }
+    </style>
+    <form id="supplier-product-create-form">
+        <div class="modal-headline">
+            Cadastrar novo produto
+        </div>
+        <input type="hidden" name="supplier_id" value="{{ supplier_id }}">
+        <input type="hidden" name="product_id" id="product_id" value="">
+        <div class="form-group mb-2">
+            <label class="form-label mb-1">Produto / Código de Barras</label>
+            <input type="text" id="product-input" name="product_search" class="form-control form-control-sm rounded-0" placeholder="Leia o codigo de barras ou digite codigo/nome" autocomplete="off" list="product-search-list" required>
+            <datalist id="product-search-list"></datalist>
+            <small class="text-muted">Digite o nome ou o codigo e selecione o produto existente do estoque, se houver.</small>
+            <div id="product-search-info" class="small text-success mt-1"></div>
+        </div>
+        <div class="form-group mb-2">
+            <label class="form-label mb-1">Categoria</label>
+            <select name="category_id" id="category_id" class="form-select form-select-sm rounded-0" required>
+                <option value="">Selecione</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group mb-2">
+            <label class="form-label mb-1">Nome do Produto</label>
+            <input type="text" name="name" class="form-control form-control-sm rounded-0" required>
+        </div>
+        <div class="form-group mb-2">
+            <label class="form-label mb-1">Descrição</label>
+            <textarea rows="3" name="description" class="form-control form-control-sm rounded-0" required></textarea>
+        </div>
+        <div class="form-group mb-2">
+            <label class="form-label mb-1">Preço de Venda</label>
+            <input type="text" name="sale_price" id="spc-sale-price" class="form-control form-control-sm rounded-0" required placeholder="0,00">
+        </div>
+        <div class="form-group mb-2">
+            <label class="form-label mb-1">Preço de Custo neste Fornecedor <small class="text-muted">(opcional)</small></label>
+            <input type="text" name="cost_price" id="spc-cost-price" class="form-control form-control-sm rounded-0" placeholder="0,00">
+        </div>
+    </form>
+</div>
+<script>
+    var supplier_products = {{ products_json|safe }};
+
+    function normalizeBarcode(value) {
+        return String(value || '').replace(/\s+/g, '').trim();
+    }
+
+    function normalizeSearchTerm(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    function updateProductSearchOptions(rawTerm) {
+        var input = $('#product-input')
+        var datalist = $('#product-search-list')
+        var searchTerm = normalizeSearchTerm(rawTerm)
+        var barcodeTerm = normalizeBarcode(rawTerm)
+        datalist.empty()
+
+        if (!searchTerm && !barcodeTerm) {
+            input.removeAttr('list')
+            return
+        }
+
+        var matches = []
+        supplier_products.forEach(function(product) {
+            if (matches.length >= 30) {
+                return
+            }
+            var productName = normalizeSearchTerm(product.name)
+            var productCode = normalizeBarcode(product.code)
+            if ((searchTerm && productName.indexOf(searchTerm) >= 0) || (barcodeTerm && productCode.indexOf(barcodeTerm) >= 0)) {
+                matches.push(product)
+            }
+        })
+
+        if (matches.length <= 0) {
+            input.removeAttr('list')
+            return
+        }
+
+        matches.forEach(function(product) {
+            var option = $('<option>')
+            option.attr('value', product.code ? product.code : product.name)
+            option.attr('label', product.name)
+            option.text(product.name + (product.code ? ' (' + product.code + ')' : ''))
+            datalist.append(option)
+        })
+        input.attr('list', 'product-search-list')
+    }
+
+    function findExistingProduct(rawValue) {
+        var code = normalizeBarcode(rawValue)
+        var name = normalizeSearchTerm(rawValue)
+        if (!code && !name) {
+            return null
+        }
+
+        var exactCode = supplier_products.find(function(product) {
+            return product.code && normalizeBarcode(product.code) === code
+        })
+        if (exactCode) {
+            return exactCode
+        }
+
+        var exactName = supplier_products.find(function(product) {
+            return normalizeSearchTerm(product.name) === name
+        })
+        if (exactName) {
+            return exactName
+        }
+
+        var partials = supplier_products.filter(function(product) {
+            return (product.code && normalizeBarcode(product.code).indexOf(code) >= 0) || (product.name && normalizeSearchTerm(product.name).indexOf(name) >= 0)
+        })
+        if (partials.length === 1) return partials[0]
+
+        return null
+    }
+
+    function applyProductSelection(product) {
+        if (!product) {
+            $('#product_id').val('')
+            $('#product-search-info').text('')
+            $('#category_id').prop('disabled', false)
+            $('[name="name"]').prop('readonly', false)
+            $('[name="description"]').prop('readonly', false)
+            $('#spc-sale-price').val('')
+            $('#spc-cost-price').val('')
+            return
+        }
+        $('#product_id').val(product.id)
+        $('#product-search-info').text('Produto existente selecionado: ' + product.name)
+        if (product.category_id) {
+            $('#category_id').val(product.category_id)
+        }
+        $('[name="name"]').val(product.name).prop('readonly', true)
+        $('[name="description"]').val(product.description).prop('readonly', true)
+        if (product.price !== undefined && product.price !== null) {
+            $('#spc-sale-price').val(Number(product.price).toFixed(2).replace('.', ','))
+        }
+    }
+
+    function resetProductSelection() {
+        $('#product_id').val('')
+        $('#product-search-info').text('')
+        $('#category_id').prop('disabled', false)
+        $('[name="name"]').prop('readonly', false)
+        $('[name="description"]').prop('readonly', false)
+    }
+
+    function parseBRL(val) {
+        var v = String(val || '').replace(/[^\d,.-]/g, '').trim()
+        if (!v) return 0
+        if (v.indexOf(',') >= 0) { v = v.replace(/\./g, '').replace(',', '.') }
+        var p = parseFloat(v)
+        return isNaN(p) ? 0 : p
+    }
+
+    $(function(){
+        $('#product-input').on('input', function() {
+            var rawValue = $(this).val()
+            updateProductSearchOptions(rawValue)
+            var product = findExistingProduct(rawValue)
+            if (product) {
+                applyProductSelection(product)
+            } else {
+                resetProductSelection()
+            }
+        })
+
+        $('#supplier-product-create-form').submit(function(e){
+            e.preventDefault()
+            start_loader()
+            $.ajax({
+                headers:{'X-CSRFToken':'{{csrf_token}}'},
+                url:'{% url "save-supplier-product-create" %}',
+                data:new FormData(this), cache:false, contentType:false, processData:false, method:'POST', dataType:'json',
+                success:function(resp){
+                    if(resp.status==='success'){ location.reload() }
+                    else { alert(resp.msg || 'Erro ao salvar produto.'); end_loader() }
+                },
+                error:function(){ end_loader() }
+            })
+        })
+    })
+</script>

@@ -1,0 +1,46 @@
+{% extends "conveniencia/base.html" %}
+{% load humanize %}
+{% block pageContent %}
+<style>
+    .ops-header { background: linear-gradient(130deg, #283618 0%, #606c38 100%); color: #fff; border-left: 4px solid #fefae0; }
+    .money-highlight { border: 1px solid #f2cf66; background: #fff8dd; }
+    .ops-section { border-top: 3px solid #606c38; }
+    .ops-table thead th { background: #2f3e1f; color: #fff; border-color: #4a6031; }
+    .ops-table tbody tr:hover { background: #fbfff5; }
+</style>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card py-3 px-3 ops-header"><h4 class="card-title mb-0">Contas a Receber de Clientes</h4></div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-3 px-3">
+        <div class="alert mb-0 money-highlight"><strong>Total a receber:</strong> R$ {{ total_receivable|floatformat:2|intcomma }}</div>
+    </div>
+</div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card table-responsive ops-section">
+<table class="table table-bordered table-striped ops-table mb-0">
+<thead><tr><th>Cliente</th><th class="text-center">Comandas em aberto</th><th class="text-end">Total devido</th><th class="text-center">Última atualização</th></tr></thead>
+<tbody>
+{% for item in customer_summaries %}
+<tr><td>{{ item.customer.name }}</td><td class="text-center">{{ item.comandas }}</td><td class="text-end">R$ {{ item.total_due|floatformat:2|intcomma }}</td><td class="text-center">{{ item.last_update|date:'d/m/Y H:i' }}</td></tr>
+{% empty %}<tr><td colspan="4" class="text-center py-3">Sem pendências de clientes no momento.</td></tr>{% endfor %}
+</tbody></table>
+</div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card table-responsive ops-section">
+<h6 class="px-3 pt-3">Detalhes das Comandas em Aberto</h6>
+<table class="table table-sm table-bordered table-striped ops-table mb-0">
+<thead><tr><th>ID</th><th>Comanda</th><th>Cliente</th><th>Caixa</th><th class="text-end">Total</th><th class="text-end">Pago</th><th class="text-end">Pendente</th><th class="text-center">Data</th></tr></thead>
+<tbody>
+{% for row in receivable_rows %}
+<tr><td class="text-center">{{ row.sale_id }}</td><td>{{ row.comanda_code }}</td><td>{{ row.customer_name }}</td><td>{{ row.cashier }}</td><td class="text-end">R$ {{ row.grand_total|floatformat:2|intcomma }}</td><td class="text-end">R$ {{ row.paid|floatformat:2|intcomma }}</td><td class="text-end text-danger"><strong>R$ {{ row.balance_due|floatformat:2|intcomma }}</strong></td><td class="text-center">{{ row.date_added|date:'d/m/Y H:i' }}</td></tr>
+{% empty %}<tr><td colspan="8" class="text-center py-3">Sem comandas pendentes.</td></tr>{% endfor %}
+</tbody></table>
+</div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card table-responsive ops-section">
+<h6 class="px-3 pt-3">Histórico Recente (Quitadas)</h6>
+<table class="table table-sm table-bordered table-striped ops-table mb-0">
+<thead><tr><th>ID</th><th>Cliente</th><th>Comanda</th><th class="text-end">Total</th><th class="text-end">Pago</th><th class="text-center">Fechada em</th></tr></thead>
+<tbody>
+{% for sale in history_rows %}
+<tr><td class="text-center">{{ sale.id }}</td><td>{{ sale.customer.name }}</td><td>{{ sale.comanda_code|default:'-' }}</td><td class="text-end">R$ {{ sale.grand_total|floatformat:2|intcomma }}</td><td class="text-end">R$ {{ sale.tendered|floatformat:2|intcomma }}</td><td class="text-center">{{ sale.date_updated|date:'d/m/Y H:i' }}</td></tr>
+{% empty %}<tr><td colspan="6" class="text-center py-3">Sem histórico disponível.</td></tr>{% endfor %}
+</tbody></table>
+</div></div>
+{% endblock pageContent %}

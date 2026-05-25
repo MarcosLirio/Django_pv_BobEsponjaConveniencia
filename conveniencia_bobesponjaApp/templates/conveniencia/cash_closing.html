@@ -1,0 +1,43 @@
+{% extends "conveniencia/base.html" %}
+{% load humanize %}
+{% block pageContent %}
+<style>
+	.ops-header { background: linear-gradient(130deg, #4a1942 0%, #893168 100%); color: #fff; border-left: 4px solid #ffcad4; }
+	.ops-filter { background: #fbf5f9; border: 1px solid #e8d5e1; }
+	.metric-card { border-left: 4px solid #893168; background: #fff; }
+	.ops-table thead th { background: #4a1942; color: #fff; border-color: #6f2f59; }
+	.ops-table tbody tr:hover { background: #fff8fd; }
+</style>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card py-3 px-3 ops-header"><h4 class="card-title mb-0">Fechamento de Caixa</h4></div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card py-3 px-3">
+<form method="get" class="row g-2 ops-filter p-2" action="{% url 'cash-closing-page' %}">
+<div class="col-md-3"><label class="form-label">Data</label><input type="date" name="date" class="form-control form-control-sm" value="{{ ref_date }}"></div>
+<div class="col-md-3 d-flex align-items-end gap-2"><button class="btn btn-sm btn-primary" type="submit">Atualizar</button></div>
+</form>
+</div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card py-3 px-3">
+<div class="row g-2">
+<div class="col-md-3"><div class="alert metric-card mb-0"><strong>Vendas fechadas</strong><br>{{ total_sales_count }}</div></div>
+<div class="col-md-3"><div class="alert metric-card mb-0"><strong>Total vendido</strong><br>R$ {{ total_closed_amount|floatformat:2|intcomma }}</div></div>
+<div class="col-md-3"><div class="alert metric-card mb-0"><strong>Recebido no caixa</strong><br>R$ {{ total_received_amount|floatformat:2|intcomma }}</div></div>
+<div class="col-md-3"><div class="alert metric-card mb-0"><strong>Ticket médio</strong><br>R$ {{ avg_ticket|floatformat:2|intcomma }}</div></div>
+</div>
+<div class="row g-2 mt-2">
+<div class="col-md-4"><div class="alert alert-danger mb-0"><strong>Pendências em aberto</strong><br>R$ {{ open_due_total|floatformat:2|intcomma }}</div></div>
+<div class="col-md-8"><div class="alert alert-light mb-0">
+<strong>Formas de pagamento (qtde de vendas):</strong>
+DINHEIRO {{ payment_breakdown.DINHEIRO }} | PIX {{ payment_breakdown.PIX }} | CREDITO {{ payment_breakdown.CREDITO }} | DEBITO {{ payment_breakdown.DEBITO }} | OUTRO {{ payment_breakdown.OUTRO }}
+</div></div>
+</div>
+</div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card table-responsive">
+<table class="table table-sm table-bordered table-striped ops-table mb-0">
+<thead><tr><th>ID</th><th>Data/Hora</th><th>Comanda</th><th class="text-end">Total</th><th class="text-end">Pago</th><th>Pagamento</th></tr></thead>
+<tbody>
+{% for sale in sales_rows %}
+<tr><td class="text-center">{{ sale.id }}</td><td class="text-center">{{ sale.date_added|date:'d/m/Y H:i' }}</td><td>{{ sale.comanda_code|default:'-' }}</td><td class="text-end">R$ {{ sale.grand_total|floatformat:2|intcomma }}</td><td class="text-end">R$ {{ sale.tendered|floatformat:2|intcomma }}</td><td>{{ sale.get_payment_methods_display }}</td></tr>
+{% empty %}<tr><td colspan="6" class="text-center py-3">Nenhuma venda fechada no dia.</td></tr>{% endfor %}
+</tbody>
+</table>
+</div></div>
+{% endblock pageContent %}

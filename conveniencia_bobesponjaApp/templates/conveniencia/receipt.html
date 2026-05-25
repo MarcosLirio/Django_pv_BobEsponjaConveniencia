@@ -15,6 +15,10 @@
             <div>
                 <span>Data:</span> {{ transaction.date_added|date:"M d Y" }} <br>
                 <span>Código da Transação:</span> {{ transaction.code }}
+                {% if transaction.comanda_code %}
+                <br><span>Comanda:</span> {{ transaction.comanda_code }}
+                {% endif %}
+                <br><span>Status:</span> {{ status_display }}
             </div>
         </div>
         <div class="clear-fix py-3"></div>
@@ -26,7 +30,7 @@
             </div>
             {% for item in salesItems %}
             <div class="d-flex w-100 align-items-end">
-                <div class="col-2 text-center fw-bold">{{ item.qty|intcomma|floatformat:0 }}</div>
+                <div class="col-2 text-center fw-bold">{{ item.qty|floatformat:0|intcomma }}</div>
                 <div class="col-6 fw-bold">
                     <div class="lh-1">
                         <small>{{ item.product_id }}</small><br>
@@ -37,6 +41,16 @@
             </div>
             {% endfor %}
             <hr>
+            <div class="d-flex w-100 align-items-end">
+                <div class="col-6 text-start fw-bold">Subtotal</div>
+                <div class="col-6 text-end fw-bold">R$ {{ transaction.sub_total|floatformat:2|intcomma }}</div>
+            </div>
+            {% if transaction.discount_amount %}
+            <div class="d-flex w-100 align-items-end">
+                <div class="col-6 text-start fw-bold">Desconto</div>
+                <div class="col-6 text-end fw-bold">R$ {{ transaction.discount_amount|floatformat:2|intcomma }}</div>
+            </div>
+            {% endif %}
             <div class="d-flex w-100 align-items-end">
                 <div class="col-6 text-start fw-bold">Total</div>
                 <div class="col-6 text-end fw-bold">R$ {{ transaction.grand_total|floatformat:2|intcomma }}</div>

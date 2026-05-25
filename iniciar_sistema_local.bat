@@ -4,7 +4,7 @@ cd /d "%~dp0"
 
 if not exist "manage.py" (
     echo ERRO: Arquivo manage.py nao encontrado em:
-    echo %cd%
+    echo !cd!
     echo.
     echo Verifique se este atalho aponta para a pasta correta do projeto.
     pause
@@ -22,11 +22,14 @@ set "PORT=8000"
 
 netstat -ano | findstr /R /C:":%PORT% .*LISTENING" >nul
 if not errorlevel 1 (
-    echo ERRO: A porta %PORT% ja esta em uso.
-    echo Feche o processo que esta usando a porta e tente novamente.
-    echo Dica: execute liberar_porta_8000_firewall.bat se necessario.
-    pause
-    exit /b 1
+    echo Porta %PORT% em uso. Tentando reiniciar o servidor automaticamente...
+    call parar_servidor_local.bat
+    if errorlevel 1 (
+        echo ERRO: Nao foi possivel liberar a porta %PORT%.
+        echo Execute este script como Administrador e tente novamente.
+        pause
+        exit /b 1
+    )
 )
 
 echo ==============================================

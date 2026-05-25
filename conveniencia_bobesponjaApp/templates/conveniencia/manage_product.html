@@ -3,25 +3,32 @@
         <input type="hidden" name="id" value="{% if product.pk %}{{product.pk}}{% endif %}">
         <div class="form-group mb-3">
             <label for="code" class="control-label">Código / Código de Barras</label>
-            <input type="text" name="code" id="code" class="form-control form-control-sm rounded-0" value="{% if product.code %}{{product.code}}{% endif %}" required>
+            <input type="text" name="code" id="code" class="form-control form-control-sm rounded-0" value="{% if product.code %}{{product.code}}{% endif %}">
             <small class="text-muted">Informe aqui o codigo digitavel ou o numero lido pelo scanner do produto.</small>
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" value="1" id="product_without_barcode" name="product_without_barcode" {% if product.code and product.code|slice:":2" == "29" %}checked{% endif %}>
+                <label class="form-check-label" for="product_without_barcode">
+                    Produto sem codigo de barras
+                </label>
+            </div>
+            <small class="text-muted">Quando marcado, o sistema gera automaticamente um codigo interno unico para esse item.</small>
         </div>
         <div class="form-group mb-3">
             <label for="category_id" class="control-label">Categoria</label>
             <select name="category_id" id="category_id" class="form-select form-select-sm rounded-0" required>
-            {% if not product.category_id %}
-            <option value="" disabled selected></option>
-            {% else %}
-            <option value="" disabled></option>
-            {% endif %}
-            {% for category in categories %}
-                {% if product.category_id == category.id %}
-                <option value="{{ category.id }}" selected>{{ category.name }}</option>
+                {% if not product.category_id_id %}
+                <option value="" disabled selected></option>
                 {% else %}
-                <option value="{{ category.id }}">{{ category.name }}</option>
+                <option value="" disabled></option>
                 {% endif %}
-            {% endfor %}
-        </select>
+                {% for category in categories %}
+                    {% if product.category_id_id == category.id %}
+                    <option value="{{ category.id }}" selected>{{ category.name }}</option>
+                    {% else %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
         </div>
         <div class="form-group mb-3">
             <label for="name" class="control-label">Nome do Produto</label>
@@ -38,15 +45,20 @@
         <div class="form-group mb-3">
             <label for="overnight_price" class="control-label">Preço da Madrugada</label>
             <input type="text" name="overnight_price" id="overnight_price" class="form-control form-control-sm rounded-0" value="{% if product.overnight_price %}{{product.overnight_price}}{% else %}0{% endif %}">
-<<<<<<< HEAD
             <small class="text-muted">Usado automaticamente entre 00:00 e 05:59. Deixe 0 para manter o preço normal.</small>
-=======
-            <small class="text-muted">Usado automaticamente entre 00:00 e 06:00. Deixe 0 para manter o preço normal.</small>
->>>>>>> a8db28471283dd509520ca9c0ab5b302f8532ea8
         </div>
         <div class="form-group mb-3">
             <label for="quantity" class="control-label">Quantidade em Estoque</label>
             <input type="number" min="0" name="quantity" id="quantity" class="form-control form-control-sm rounded-0" value="{% if product.quantity is not None %}{{product.quantity}}{% else %}0{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="1" id="infinite_stock" name="infinite_stock" {% if product.infinite_stock %}checked{% endif %}>
+                <label class="form-check-label" for="infinite_stock">
+                    Estoque infinito (para itens como dose, meia dose, unidade avulsa)
+                </label>
+            </div>
+            <small class="text-muted">Quando ativo, o caixa permite quantidade fracionada e não baixa estoque desse item.</small>
         </div>
         <div class="form-group mb-3">
             <label for="status" class="control-label">Status</label>
@@ -68,6 +80,25 @@
 </div>
 <script>
     $(function() {
+        function syncBarcodeFieldState() {
+            var enabled = $('#product_without_barcode').is(':checked')
+            if (enabled) {
+                $('#code').val('')
+                $('#code').attr('placeholder', 'Codigo interno sera gerado automaticamente')
+            } else {
+                $('#code').attr('placeholder', '')
+            }
+            $('#code').prop('readonly', enabled)
+        }
+
+        function syncInfiniteStockState() {
+            var enabled = $('#infinite_stock').is(':checked')
+            if (enabled) {
+                $('#quantity').val(0)
+            }
+            $('#quantity').prop('readonly', enabled)
+        }
+
         function parseCurrencyValue(value) {
             var cleaned = String(value || '').replace(/[^\d,.-]/g, '').trim()
             if (cleaned === '') {
@@ -109,6 +140,16 @@
 
         bindCurrencyField('#price')
         bindCurrencyField('#overnight_price')
+        syncBarcodeFieldState()
+        syncInfiniteStockState()
+
+        $('#product_without_barcode').on('change', function() {
+            syncBarcodeFieldState()
+        })
+
+        $('#infinite_stock').on('change', function() {
+            syncInfiniteStockState()
+        })
 
         $('#product-form').submit(function(e) {
             e.preventDefault();

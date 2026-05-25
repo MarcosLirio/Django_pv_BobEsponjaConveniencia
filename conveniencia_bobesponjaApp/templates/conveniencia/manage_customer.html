@@ -1,0 +1,75 @@
+<div class="container-fluid">
+    <form action="" id="customer-form">
+        <input type="hidden" name="id" value="{% if customer.pk %}{{ customer.pk }}{% endif %}">
+        <div class="form-group mb-3">
+            <label for="name" class="control-label">Nome</label>
+            <input type="text" name="name" id="name" class="form-control form-control-sm rounded-0" value="{% if customer.name %}{{ customer.name }}{% endif %}" required maxlength="150">
+        </div>
+        <div class="form-group mb-3">
+            <label for="phone" class="control-label">Telefone</label>
+            <input type="text" name="phone" id="phone" class="form-control form-control-sm rounded-0" value="{% if customer.phone %}{{ customer.phone }}{% endif %}" maxlength="30">
+        </div>
+        <div class="form-group mb-3">
+            <label for="notes" class="control-label">Observações</label>
+            <textarea rows="4" name="notes" id="notes" class="form-control form-control-sm rounded-0">{% if customer.notes %}{{ customer.notes }}{% endif %}</textarea>
+        </div>
+        <div class="form-group mb-3">
+            <label for="active" class="control-label">Status</label>
+            <select name="active" id="active" class="form-select form-select-sm rounded-0" required>
+                <option value="1" {% if customer.active or not customer.pk %}selected{% endif %}>Ativo</option>
+                <option value="0" {% if customer.pk and not customer.active %}selected{% endif %}>Inativo</option>
+            </select>
+        </div>
+    </form>
+</div>
+<script>
+    $(function() {
+        $('#customer-form').submit(function(e) {
+            e.preventDefault()
+            var _this = $(this)
+            $('.err-msg').remove()
+            var el = $('<div>')
+            el.addClass('alert alert-danger err-msg')
+            el.hide()
+
+            if (_this[0].checkValidity() === false) {
+                _this[0].reportValidity()
+                return false
+            }
+
+            start_loader()
+            $.ajax({
+                headers: {
+                    'X-CSRFToken': '{{csrf_token}}'
+                },
+                url: '{% url "save-customer-page" %}',
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    end_loader()
+                },
+                success: function(resp) {
+                    if (typeof resp === 'object' && resp.status === 'success') {
+                        location.reload()
+                        return
+                    }
+                    if (resp.status === 'failed' && !!resp.msg) {
+                        el.text(resp.msg)
+                    } else {
+                        el.text('Ocorreu um erro ao salvar o cliente.')
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $('html, body, .modal').scrollTop(0)
+                    end_loader()
+                }
+            })
+        })
+    })
+</script>

@@ -1,0 +1,52 @@
+{% extends "conveniencia/base.html" %}
+{% load humanize %}
+{% block pageContent %}
+<style>
+    .ops-header { background: linear-gradient(130deg, #3d405b 0%, #586994 100%); color: #fff; border-left: 4px solid #f2cc8f; }
+    .ops-actions { background: #f7f8fc; border: 1px solid #d9deea; }
+    .ops-section { border-top: 3px solid #586994; }
+    .ops-table thead th { background: #3d405b; color: #fff; border-color: #596180; }
+    .ops-table tbody tr:hover { background: #f7f9ff; }
+</style>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card py-3 px-3 ops-header"><h4 class="card-title mb-0">Anotações e Lembretes de Contas</h4></div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card py-3 px-3 d-flex gap-2">
+<div class="ops-actions p-2 d-flex flex-wrap gap-2 w-100">
+<button class="btn btn-primary btn-sm rounded-0" id="create_payable"><i class="mdi mdi-plus"></i> Nova Conta a Pagar</button>
+<button class="btn btn-dark btn-sm rounded-0" id="create_reminder"><i class="mdi mdi-plus"></i> Novo Lembrete</button>
+</div>
+</div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card table-responsive ops-section">
+<h6 class="px-3 pt-3">Contas a Pagar</h6>
+<table class="table table-sm table-bordered table-striped ops-table mb-0">
+<thead><tr><th>ID</th><th>Descrição</th><th>Fornecedor</th><th class="text-end">Valor</th><th class="text-center">Vencimento</th><th class="text-center">Status</th><th class="text-center">Ação</th></tr></thead>
+<tbody>
+{% for p in payables %}
+<tr><td class="text-center">{{ p.id }}</td><td>{{ p.description }}</td><td>{% if p.supplier %}{{ p.supplier.name }}{% else %}-{% endif %}</td><td class="text-end">R$ {{ p.amount|floatformat:2|intcomma }}</td><td class="text-center">{{ p.due_date|date:'d/m/Y' }}</td><td class="text-center">{{ p.get_status_display }}</td><td class="text-center"><button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light edit-payable" data-id="{{ p.id }}"><i class="material-icons mdc-button__icon">edit</i></button><button class="mdc-button mdc-button--raised p-1 icon-button filled-button--danger delete-payable" data-id="{{ p.id }}"><i class="material-icons mdc-button__icon">delete_outline</i></button></td></tr>
+{% empty %}<tr><td colspan="7" class="text-center py-3">Nenhuma conta a pagar cadastrada.</td></tr>{% endfor %}
+</tbody></table>
+</div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card table-responsive ops-section">
+<h6 class="px-3 pt-3">Lembretes</h6>
+<table class="table table-sm table-bordered table-striped ops-table mb-0">
+<thead><tr><th>ID</th><th>Título</th><th>Tipo</th><th>Cliente</th><th class="text-end">Valor</th><th class="text-center">Vencimento</th><th class="text-center">Status</th><th class="text-center">Ação</th></tr></thead>
+<tbody>
+{% for r in reminders %}
+<tr><td class="text-center">{{ r.id }}</td><td>{{ r.title }}</td><td>{{ r.get_reminder_type_display }}</td><td>{% if r.customer %}{{ r.customer.name }}{% else %}-{% endif %}</td><td class="text-end">R$ {{ r.amount|floatformat:2|intcomma }}</td><td class="text-center">{% if r.due_date %}{{ r.due_date|date:'d/m/Y' }}{% else %}-{% endif %}</td><td class="text-center">{{ r.get_status_display }}</td><td class="text-center"><button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light edit-reminder" data-id="{{ r.id }}"><i class="material-icons mdc-button__icon">edit</i></button><button class="mdc-button mdc-button--raised p-1 icon-button filled-button--danger delete-reminder" data-id="{{ r.id }}"><i class="material-icons mdc-button__icon">delete_outline</i></button></td></tr>
+{% empty %}<tr><td colspan="8" class="text-center py-3">Nenhum lembrete cadastrado.</td></tr>{% endfor %}
+</tbody></table>
+</div></div>
+{% endblock pageContent %}
+{% block ScriptBlock %}
+<script>
+$(function(){
+    $('#create_payable').click(function(){ uni_modal('Nova Conta a Pagar', '{% url "manage-payable-account-page" %}') })
+    $('#create_reminder').click(function(){ uni_modal('Novo Lembrete', '{% url "manage-finance-reminder-page" %}') })
+    $('.edit-payable').click(function(){ uni_modal('Editar Conta a Pagar', '{% url "manage-payable-account-page" %}?id=' + $(this).attr('data-id')) })
+    $('.edit-reminder').click(function(){ uni_modal('Editar Lembrete', '{% url "manage-finance-reminder-page" %}?id=' + $(this).attr('data-id')) })
+    $('.delete-payable').click(function(){ _conf('Excluir conta a pagar?', 'delete_payable_account', [$(this).attr('data-id')]) })
+    $('.delete-reminder').click(function(){ _conf('Excluir lembrete?', 'delete_finance_reminder', [$(this).attr('data-id')]) })
+})
+function delete_payable_account($id){ start_loader(); $.ajax({ headers:{'X-CSRFToken':'{{csrf_token}}'}, url:'{% url "delete-payable-account" %}', method:'POST', data:{id:$id}, dataType:'json', success:function(resp){ if(resp.status==='success'){location.reload()} else {end_loader()} }, error:function(){end_loader()} }) }
+function delete_finance_reminder($id){ start_loader(); $.ajax({ headers:{'X-CSRFToken':'{{csrf_token}}'}, url:'{% url "delete-finance-reminder" %}', method:'POST', data:{id:$id}, dataType:'json', success:function(resp){ if(resp.status==='success'){location.reload()} else {end_loader()} }, error:function(){end_loader()} }) }
+</script>
+{% endblock ScriptBlock %}

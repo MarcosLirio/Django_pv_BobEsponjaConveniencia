@@ -1,0 +1,54 @@
+<div class="container-fluid">
+    <style>
+        .modal-headline { background: #fff8ef; border-left: 3px solid #c97b1f; padding: .55rem .65rem; margin-bottom: .75rem; font-size: .82rem; }
+    </style>
+    <form id="payable-form">
+        <div class="modal-headline">Conta a pagar e controle de vencimento</div>
+        <input type="hidden" name="id" value="{% if payable.pk %}{{ payable.pk }}{% endif %}">
+        <div class="form-group mb-2">
+            <label for="description">Descrição</label>
+            <input type="text" name="description" id="description" class="form-control form-control-sm rounded-0" value="{% if payable.description %}{{ payable.description }}{% endif %}" required>
+        </div>
+        <div class="form-group mb-2">
+            <label for="supplier_id">Fornecedor</label>
+            <select name="supplier_id" id="supplier_id" class="form-select form-select-sm rounded-0">
+                <option value="">Sem fornecedor</option>
+                {% for s in suppliers %}
+                <option value="{{ s.id }}" {% if payable.supplier_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-6 form-group mb-2">
+                <label for="amount">Valor</label>
+                <input type="number" min="0.01" step="0.01" name="amount" id="amount" class="form-control form-control-sm rounded-0" value="{% if payable.amount %}{{ payable.amount }}{% endif %}" required>
+            </div>
+            <div class="col-md-6 form-group mb-2">
+                <label for="due_date">Vencimento</label>
+                <input type="date" name="due_date" id="due_date" class="form-control form-control-sm rounded-0" value="{% if payable.due_date %}{{ payable.due_date|date:'Y-m-d' }}{% endif %}" required>
+            </div>
+        </div>
+        <div class="form-group mb-2">
+            <label for="status">Status</label>
+            <select name="status" id="status" class="form-select form-select-sm rounded-0">
+                <option value="PENDENTE" {% if payable.status == 'PENDENTE' or not payable.pk %}selected{% endif %}>Pendente</option>
+                <option value="PAGO" {% if payable.status == 'PAGO' %}selected{% endif %}>Pago</option>
+                <option value="ATRASADO" {% if payable.status == 'ATRASADO' %}selected{% endif %}>Atrasado</option>
+            </select>
+        </div>
+        <div class="form-group mb-2">
+            <label for="notes">Observação</label>
+            <textarea name="notes" id="notes" rows="3" class="form-control form-control-sm rounded-0">{% if payable.notes %}{{ payable.notes }}{% endif %}</textarea>
+        </div>
+    </form>
+</div>
+<script>
+$(function(){
+    $('#payable-form').submit(function(e){
+        e.preventDefault()
+        var _this=$(this)
+        start_loader()
+        $.ajax({ headers:{'X-CSRFToken':'{{csrf_token}}'}, url:'{% url "save-payable-account-page" %}', data:new FormData(_this[0]), cache:false, contentType:false, processData:false, method:'POST', dataType:'json', success:function(resp){ if(resp.status==='success'){location.reload()} else { alert(resp.msg || 'Erro ao salvar conta a pagar.'); end_loader()} }, error:function(){end_loader()} })
+    })
+})
+</script>

@@ -41,9 +41,122 @@ body {
 .mdc-drawer__header,
 .mdc-drawer__content {
     margin: .5em !important;
+    overflow: hidden !important;
+}
+
+.mdc-drawer .mdc-drawer__content .mdc-drawer-menu .mdc-drawer-item {
+    margin: 6px 8px !important;
+    overflow: hidden !important;
 }
 
 .mdc-list-item.mdc-drawer-item {
     margin-left: 0 !important;
     margin-right: 0 !important;
+    height: auto !important;
+    overflow: hidden !important;
+}
+
+.mdc-drawer .mdc-drawer-link {
+    color: #fff !important;
+    opacity: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    height: auto !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+}
+
+.mdc-drawer .mdc-drawer-link .mdc-drawer-item-icon {
+    flex: 1 0 auto;
+    font-size: 20px !important;
+    margin-right: 0 !important;
+    margin-bottom: 4px !important;
+    margin-top: 0 !important;
+    align-self: center !important;
+}
+
+.mdc-drawer .mdc-drawer-link .menu-label {
+    color: #fff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    margin-left: 2px !important;
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    line-height: 1.35 !important;
+    font-size: 12px !important;
+    text-align: center !important;
+}
+
+.mdc-drawer .mdc-drawer-link.long-item {
+    min-height: 40px !important;
+    height: auto !important;
+    align-items: center !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+}
+
+.mdc-drawer .mdc-drawer-link.long-item .menu-label.long-label {
+    white-space: normal !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.35 !important;
+    font-size: 11px !important;
+    letter-spacing: -0.1px;
+    text-align: center !important;
+}
+
+@media (min-width: 768px) {
+    .mdc-drawer.mdc-drawer--dismissible,
+    .mdc-drawer.mdc-drawer--dismissible.mdc-drawer--open {
+        width: 255px !important;
+    }
+
+    .mdc-drawer.mdc-drawer--open:not(.mdc-drawer--closing) + .mdc-drawer-app-content {
+        margin-left: 255px !important;
+    }
+}
+
+.mdc-drawer .mdc-drawer-link.active .menu-label,
+.mdc-drawer .mdc-drawer-link.active {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.14) !important;
+    font-weight: 600 !important;
+}
+
+.mdc-drawer .mdc-list-item--activated .mdc-drawer-link,
+.mdc-drawer .mdc-list-item--selected .mdc-drawer-link,
+.mdc-drawer .mdc-list-item--activated .menu-label,
+.mdc-drawer .mdc-list-item--selected .menu-label {
+    color: #fff !important;
+}
+
+.mdc-drawer .mdc-list-item--activated,
+.mdc-drawer .mdc-list-item--selected {
+    background: rgba(255, 255, 255, 0.14) !important;
+}
+
+#open-comandas-list {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+#open-comandas-list .open-comanda-item {
+    display: block;
+    width: 100%;
+    white-space: normal;
 }

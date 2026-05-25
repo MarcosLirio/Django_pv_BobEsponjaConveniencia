@@ -12,27 +12,29 @@
             <fieldset>
                 <legend>Adicionar Produtos</legend>
                 <div id="pos-feedback" class="alert d-none" role="alert"></div>
+                <div id="customer-status-alert" class="alert alert-danger rounded-0 mb-3" role="alert" style="display: none;">
+                    <strong>⚠️ AVISO:</strong> Nenhum cliente vinculado à venda. Você pode salvar essa comanda em aberto sem cliente ou vincular um cliente para controle de recebíveis.
+                </div>
+                <div id="customer-linked-alert" class="alert alert-success rounded-0 mb-3" role="alert" style="display: none;">
+                    <strong>✅ Cliente Vinculado:</strong> <span id="customer-linked-name"></span> <span id="customer-linked-phone" class="text-muted small"></span>
+                </div>
                 {% if overnight_mode %}
                 <div class="alert alert-warning rounded-0" role="alert">
-                    Preço de madrugada ativo. O caixa está usando o valor configurado para vendas entre 00:00 e 05:59.
+                    Preco de madrugada ativo. O caixa esta usando o valor configurado para vendas entre 00:00 e 05:59.
                 </div>
                 {% endif %}
                 <div class="row align-items-end">
-                    <div class="col-lg-8 col-md-8 col-sm-12">
+                    <div class="col-lg-10 col-md-10 col-sm-12">
                         <div class="form-group mb-3">
-                            <label for="barcode-input">Entrada Rápida do Caixa</label>
+                            <label for="barcode-input">Entrada Rapida do Caixa</label>
                             <input type="text" id="barcode-input" class="form-control form-control-sm" placeholder="Leia o codigo de barras ou digite codigo/nome" autocomplete="off">
                             <datalist id="product-quick-search"></datalist>
                             <small class="text-muted">Ao ler ou digitar e confirmar, o produto entra direto na lista e fica como item selecionado.</small>
                         </div>
                     </div>
                     <div class="col-lg-2 col-md-2 col-sm-12">
-                        <div class="form-group mb-3">
-                            <label for="order-qty">Quantidade</label>
-                            <input type="number" class="form-control form-control-sm text-center" min="1" step="1" id="order-qty" value="1">
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-2 col-sm-12">
+                        <input type="hidden" id="order-qty" value="1">
+                        <input type="hidden" id="comanda-code">
                         <div class="form-group mb-3">
                             <label class="d-block">&nbsp;</label>
                             <button class="btn btn-light btn-sm bg-gradient border rounded-0 text-start w-100" type="button" id="add_item"><i class="mdi mdi-plus"></i> Adicionar</button>
@@ -41,13 +43,56 @@
                 </div>
                 <div class="row">
                     <div class="col-12">
-                        <small class="text-muted">Use esta quantidade para somar no último produto lido ou no item selecionado na lista.</small>
+                        <small class="text-muted">Voce pode editar o preco unitario do item no carrinho para aplicar desconto pontual.</small>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+                        <button class="btn btn-outline-warning btn-sm rounded-0 text-nowrap text-center" style="min-width: 220px;" type="button" id="save_comanda"><i class="mdi mdi-book-open-page-variant"></i> Salvar Comanda</button>
+                        <button class="btn btn-outline-secondary btn-sm rounded-0 text-nowrap text-center" style="min-width: 220px;" type="button" id="new_sale"><i class="mdi mdi-playlist-plus"></i> Nova Venda</button>
+                        <small class="text-muted" id="current-sale-label">Venda avulsa.</small>
+                    </div>
+                </div>
+                <div class="modal fade" id="save-comanda-modal" tabindex="-1" role="dialog" aria-labelledby="saveComandaModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                        <div class="modal-content rounded-0">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="saveComandaModalLabel">Salvar Comanda</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="save-comanda-name" class="form-label">Nome do Cliente (opcional)</label>
+                                    <input type="text" id="save-comanda-name" class="form-control form-control-sm rounded-0" placeholder="Nome do cliente" maxlength="150">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="save-comanda-phone" class="form-label">Telefone do Cliente (opcional)</label>
+                                    <input type="text" id="save-comanda-phone" class="form-control form-control-sm rounded-0" placeholder="Telefone" maxlength="30">
+                                </div>
+                                <div id="save-comanda-selected-customer" class="alert alert-success rounded-0 d-none">
+                                    <strong>Cliente vinculado:</strong>
+                                    <span id="save-comanda-selected-name"></span>
+                                    <span id="save-comanda-selected-phone" class="text-muted"></span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button" class="btn btn-primary btn-sm rounded-0" id="save-comanda-open-existing">Clientes cadastrados</button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-0" id="save-comanda-register-client">Cadastrar cliente e salvar</button>
+                                </div>
+                                <p class="small text-muted mt-2">
+                                    Clique em "Salvar Comanda" para gravar a comanda em aberto; o nome do cliente é opcional. Clique em "Cadastrar cliente e salvar" para criar o cliente e vincular a comanda a ele.
+                                </p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary btn-sm rounded-0" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-warning btn-sm rounded-0" id="save-comanda-submit">Salvar Comanda</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </fieldset>
             <fieldset>
                 <div class="d-flex w-100" id="POS-field">
-                    <div class="col-8 bg-gradient bg-light border h-100" style="overflow-y: auto; max-height: 400px;">
+                    <div class="col-8 bg-gradient bg-light border h-100" style="overflow-y: auto;">
                         <table class="table table-bordered">
                             <colgroup>
                                 <col width="5%">
@@ -58,43 +103,58 @@
                             </colgroup>
                             <thead>
                                 <tr class="bg-dark bg-gradient bg-opacity-50 text-light">
-                                    <th class="py-1 px-2 text-center  text-light"></th>
-                                    <th class="py-1 px-2 text-center  text-light">QTD</th>
-                                    <th class="py-1 px-2 text-center  text-light">Produto</th>
-                                    <th class="py-1 px-2 text-center  text-light">Preço</th>
-                                    <th class="py-1 px-2 text-center  text-light">Total</th>
+                                    <th class="py-1 px-2 text-center text-light"></th>
+                                    <th class="py-1 px-2 text-center text-light">QTD</th>
+                                    <th class="py-1 px-2 text-center text-light">Produto</th>
+                                    <th class="py-1 px-2 text-center text-light">Preco</th>
+                                    <th class="py-1 px-2 text-center text-light">Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                             </tbody>
                         </table>
                     </div>
-                    <div class="col-4 bg-gradient bg-dark bg-opacity-50 border h-100">
-                        <div class="col-12 py-4 px-2">
-                            <dl>
+                    <div class="col-4 bg-gradient bg-dark bg-opacity-50 border" style="height: 55vh; overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="flex: 0 0 auto; padding: 12px 8px 8px;">
+                            <dl class="mb-0">
                                 <dt class="h4 fw-bold text-light">Subtotal</dt>
                                 <dd class="text-end py-1 px-2 rounded-0 bg-light">
                                     <input type="hidden" name="sub_total" value="0">
                                     <span class="h3 fw-bold" id="sub_total">0.00</span>
                                 </dd>
                                 <dt class="h4 fw-bold text-light">Total Geral</dt>
-                                <dd class="text-end py-1 px-2 rounded-0 bg-light">
+                                <dd class="text-end py-1 px-2 rounded-0 bg-light mb-0">
                                     <input type="hidden" name="grand_total" value="0">
                                     <input type="hidden" name="tendered_amount" value="0">
                                     <input type="hidden" name="amount_change" value="0">
                                     <input type="hidden" name="payment_methods" value="">
                                     <input type="hidden" name="payment_other_detail" value="">
+                                    <input type="hidden" name="sale_id" value="">
+                                    <input type="hidden" name="sale_action" value="checkout">
+                                    <input type="hidden" name="customer_id" value="">
+                                    <input type="hidden" name="customer_name" value="">
+                                    <input type="hidden" name="customer_phone" value="">
+                                    <input type="hidden" name="comanda_code" value="">
+                                    <input type="hidden" name="discount_type" value="VALUE">
+                                    <input type="hidden" name="discount_value" value="0">
                                     <span class="h3 fw-bold" id="grand_total">0.00</span>
                                 </dd>
                             </dl>
+                        </div>
+                        <div class="mx-2 mb-2 bg-light p-2 rounded-0 border" style="flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+                            <div class="d-flex justify-content-between align-items-center mb-2" style="flex: 0 0 auto;">
+                                <strong>Comandas em Aberto</strong>
+                                <span class="badge bg-dark" id="open-comandas-count">0</span>
+                            </div>
+                            <div id="open-comandas-list" class="small text-start text-dark"></div>
                         </div>
                     </div>
                 </div>
             </fieldset>
             <div class="row">
                 <div class="col-md-12 text-end">
-                    <button class="btn btn-danger btn-sm rounded-0 me-2" type="button" id="cancel_sale"><i class="mdi mdi-close"></i> Cancelar Venda</button>
-                    <button class="btn btn-primary btn-sm rounded-0" type="button" id="check_out"><i class="mdi mdi-save"></i> Finalizar Compra</button>
+                    <button class="btn btn-outline-danger btn-sm rounded-0 me-2" type="button" id="cancel_sale"><i class="mdi mdi-close"></i> Cancelar Venda</button>
+                    <button class="btn btn-success rounded-0 px-4 fw-bold" type="button" id="check_out"><i class="mdi mdi-cash-register"></i> Finalizar Compra</button>
                 </div>
             </div>
         </form>
@@ -107,22 +167,30 @@
         </td>
         <td class="px-2 py-1">
             <input type="hidden" name="product_id[]">
-            <input type="hidden" name="price[]">
-            <input type="number" name="qty[]" min="0" class="form-control form-control-sm rounded-0 text-center">
+            <input type="number" name="qty[]" min="1" step="1" class="form-control form-control-sm rounded-0 text-center">
         </td>
         <td class="px-2 py-1 product_name text-start"></td>
-        <td class="px-2 py-1 product_price text-end"></td>
+        <td class="px-2 py-1 product_price text-end">
+            <input type="number" name="price[]" min="0.01" step="0.01" class="form-control form-control-sm rounded-0 text-end">
+        </td>
         <td class="px-2 py-1 product_total text-end"></td>
     </tr>
 </noscript> {% endblock pageContent %} {% block ScriptBlock %}
 <script>
     var product_json = {{ product_json|safe }};
+    var customer_json = {{ customers_json|safe }};
+    var open_comandas_json = {{ open_comandas_json|safe }};
     if (!Array.isArray(product_json)) {
         product_json = [];
+    }
+    if (!Array.isArray(open_comandas_json)) {
+        open_comandas_json = [];
     }
     var prod_arr = {}
     var prod_code_arr = {}
     var product_list = []
+    var customer_list = []
+    var openComandasMap = {}
     var currentSelectedProductId = null
     var scannerBuffer = ''
     var scannerLastKeyAt = 0
@@ -136,13 +204,19 @@
         return String(value || '').trim().toLowerCase();
     }
 
-    product_json.forEach(prod => {
+    product_json.forEach(function(prod) {
         prod_arr[String(prod.id)] = prod
         product_list.push(prod)
         var normalizedCode = normalizeBarcode(prod.code)
         if (normalizedCode !== '') {
             prod_code_arr[normalizedCode] = prod
         }
+    })
+    customer_json.forEach(function(customer) {
+        customer_list.push(customer)
+    })
+    open_comandas_json.forEach(function(comanda) {
+        openComandasMap[String(comanda.id)] = comanda
     })
 
     function showPosMessage(message, type) {
@@ -162,6 +236,29 @@
 
     function formatBRL(value) {
         return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    }
+
+    function parseQtyValue(value) {
+        var raw = String(value || '').trim()
+        if (raw === '') {
+            return NaN
+        }
+        var parsed = parseInt(raw, 10)
+        return isNaN(parsed) ? NaN : parsed
+    }
+
+    function parsePriceValue(value) {
+        var raw = String(value || '').trim().replace(',', '.')
+        var parsed = parseFloat(raw)
+        return isNaN(parsed) ? NaN : parsed
+    }
+
+    function formatQtyValue(value) {
+        var numberValue = parseInt(value, 10)
+        if (isNaN(numberValue) || numberValue <= 0) {
+            return '1'
+        }
+        return String(numberValue)
     }
 
     function updateQuickSearchOptions(rawTerm) {
@@ -218,6 +315,224 @@
         }
     }
 
+    function updateCurrentSaleLabel() {
+        var currentSaleId = $('[name="sale_id"]').val()
+        var comandaCode = $('#comanda-code').val().trim()
+        var customerName = String($('[name="customer_name"]').val() || '').trim()
+        if (currentSaleId && comandaCode) {
+            $('#current-sale-label').text('Editando comanda ' + comandaCode + (customerName ? ' de ' + customerName : '') + '.')
+            return
+        }
+        if (comandaCode) {
+            $('#current-sale-label').text('Nova comanda ' + comandaCode + (customerName ? ' para ' + customerName : '') + ' ainda nao salva.')
+            return
+        }
+        if (customerName) {
+            $('#current-sale-label').text('Venda para ' + customerName + '.')
+            return
+        }
+        $('#current-sale-label').text('Venda avulsa.')
+    }
+
+    function updateCustomerStatusAlert() {
+        updateCurrentSaleLabel()
+        updateSaveComandaButton()
+    }
+
+    function updateSaveComandaButton() {
+        $('#save_comanda').prop('disabled', false)
+    }
+
+    function clearLinkedCustomer() {
+        $('[name="customer_id"]').val('')
+        $('[name="customer_name"]').val('')
+        $('[name="customer_phone"]').val('')
+        updateCustomerStatusAlert()
+        updateCurrentSaleLabel()
+        showPosMessage('Cliente desvinculado da comanda atual.', 'warning')
+    }
+
+    function openSaveComandaModal() {
+        var customerId = String($('[name="customer_id"]').val() || '').trim()
+        var customerName = String($('[name="customer_name"]').val() || '').trim()
+        var customerPhone = String($('[name="customer_phone"]').val() || '').trim()
+
+        $('#save-comanda-name').val(customerName)
+        $('#save-comanda-phone').val(customerPhone)
+        if (customerId && customerName) {
+            $('#save-comanda-selected-name').text(customerName)
+            $('#save-comanda-selected-phone').text(customerPhone ? ' ⦁ ' + customerPhone : '')
+            $('#save-comanda-selected-customer').removeClass('d-none')
+        } else {
+            $('#save-comanda-selected-customer').addClass('d-none')
+        }
+        $('[name="sale_action"]').val('open_comanda')
+        window._saveComandaFromModal = false
+        window._saveComandaSelectedCustomer = false
+        $('#save-comanda-modal').modal('show')
+    }
+
+    function submitSaveComandaModal() {
+        if ($('#POS-field table tbody tr').length <= 0) {
+            showPosMessage('Adicione pelo menos 1 produto antes de salvar a comanda.', 'danger')
+            return false
+        }
+        var customerId = String($('[name="customer_id"]').val() || '').trim()
+        var customerName = String($('#save-comanda-name').val() || '').trim()
+        var customerPhone = String($('#save-comanda-phone').val() || '').trim()
+        $('[name="customer_id"]').val(customerId)
+        $('[name="customer_name"]').val(customerName)
+        $('[name="customer_phone"]').val(customerPhone)
+        $('[name="sale_action"]').val('open_comanda')
+        $('[name="comanda_code"]').val(customerName || '')
+        $('#save-comanda-modal').modal('hide')
+        $('#pos-form').submit()
+    }
+
+    function registerCustomerAndSaveComanda(confirmDuplicateUpdate) {
+        if ($('#POS-field table tbody tr').length <= 0) {
+            showPosMessage('Adicione pelo menos 1 produto antes de salvar a comanda.', 'danger')
+            return false
+        }
+        var customerName = String($('#save-comanda-name').val() || '').trim()
+        if (!customerName) {
+            showPosMessage('Informe o nome do cliente antes de cadastrar o cliente.', 'danger')
+            $('#save-comanda-name').trigger('focus')
+            return false
+        }
+        var customerPhone = String($('#save-comanda-phone').val() || '').trim()
+        $.ajax({
+            headers: {
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            url: '{% url "save-customer-page" %}',
+            method: 'POST',
+            dataType: 'json',
+            data: {
+                name: customerName,
+                phone: customerPhone,
+                active: '1',
+                require_duplicate_confirmation: '1',
+                confirm_duplicate_update: confirmDuplicateUpdate ? '1' : '0'
+            },
+            error: function() {
+                alert('Falha ao cadastrar cliente.')
+            },
+            success: function(resp) {
+                if (typeof resp === 'object' && resp.status === 'confirm_required') {
+                    if (confirm(resp.msg || 'Esse cliente ja existe. Deseja sobrepor/atualizar o cadastro existente?') !== true) {
+                        return
+                    }
+                    registerCustomerAndSaveComanda(true)
+                    return
+                }
+                if (typeof resp === 'object' && resp.status === 'success') {
+                    $('[name="customer_id"]').val(resp.customer_id)
+                    $('[name="customer_name"]').val(resp.customer_name)
+                    $('[name="customer_phone"]').val(resp.customer_phone || customerPhone)
+                    $('[name="sale_action"]').val('open_comanda')
+                    $('[name="comanda_code"]').val(resp.customer_name)
+                    $('#save-comanda-modal').modal('hide')
+                    $('#pos-form').submit()
+                    return
+                }
+                alert((resp && resp.msg) || 'Nao foi possivel cadastrar o cliente.')
+            }
+        })
+    }
+
+    function submitSaveComandaAfterSelection() {
+        if ($('#POS-field table tbody tr').length <= 0) {
+            showPosMessage('Adicione pelo menos 1 produto antes de salvar a comanda.', 'danger')
+            return false
+        }
+        $('[name="sale_action"]').val('open_comanda')
+        $('#pos-form').submit()
+    }
+
+    function openSaveComandaCustomerSelection(openNew) {
+        window._returnToSaveComandaModal = true
+        window._saveComandaFromModal = true
+        window._openSaveComandaNewCustomerOverlay = !!openNew
+        window._saveComandaSelectedCustomer = false
+        $('#save-comanda-modal').modal('hide')
+        uni_modal('Selecionar Cliente Cadastrado', '{% url "select-customer-modal" %}', 'modal-lg')
+    }
+
+    $(document).on('shown.bs.modal', '#uni_modal', function() {
+        if (window._openSaveComandaNewCustomerOverlay) {
+            window._openSaveComandaNewCustomerOverlay = false
+            setTimeout(function() {
+                $('#open-create-customer-overlay').trigger('click')
+            }, 100)
+        }
+    })
+
+    $(document).on('hide.bs.modal', '#uni_modal', function() {
+        if (window._returnToSaveComandaModal) {
+            if (window._saveComandaSelectedCustomer) {
+                window._returnToSaveComandaModal = false
+                window._saveComandaSelectedCustomer = false
+                var customerName = String($('[name="customer_name"]').val() || '').trim()
+                var currentComandaCode = String($('[name="comanda_code"]').val() || '').trim()
+                if (!currentComandaCode && customerName) {
+                    $('[name="comanda_code"]').val(customerName)
+                }
+                $('[name="sale_action"]').val('open_comanda')
+                $('#pos-form').submit()
+                return
+            }
+            window._returnToSaveComandaModal = false
+            openSaveComandaModal()
+        }
+    })
+
+    function resetSaleContext() {
+        $('[name="sale_id"]').val('')
+        $('[name="sale_action"]').val('checkout')
+        $('[name="customer_id"]').val('')
+        $('[name="payment_methods"]').val('')
+        $('[name="payment_other_detail"]').val('')
+        $('[name="tendered_amount"]').val('0')
+        $('[name="amount_change"]').val('0')
+        $('[name="customer_name"]').val('')
+        $('[name="customer_phone"]').val('')
+        $('#comanda-code').val('')
+        updateCurrentSaleLabel()
+        updateCustomerStatusAlert()
+    }
+
+    function renderOpenComandasList() {
+        var container = $('#open-comandas-list')
+        var comandas = open_comandas_json.slice().sort(function(left, right) {
+            return String(left.comanda_code).localeCompare(String(right.comanda_code), 'pt-BR', { numeric: true, sensitivity: 'base' })
+        })
+
+        container.empty()
+        $('#open-comandas-count').text(comandas.length)
+
+        if (comandas.length <= 0) {
+            container.append('<div class="text-muted">Nenhuma comanda aberta.</div>')
+            return
+        }
+
+        comandas.forEach(function(comanda) {
+            var line = $('<button type="button" class="btn btn-outline-dark btn-sm w-100 text-start mb-1 open-comanda-item"></button>')
+            line.attr('data-id', comanda.id)
+            var customerLabel = comanda.customer_name ? ' | ' + comanda.customer_name : ''
+            var balanceLabel = comanda.balance_due > 0 ? ' | Pendente ' + formatBRL(comanda.balance_due) : ''
+            line.html('<strong>Comanda ' + comanda.comanda_code + '</strong> <span class="badge bg-secondary">ID #' + comanda.id + '</span>' + customerLabel + '<br><small>' + comanda.item_count + ' item(ns) | ' + formatBRL(comanda.sub_total) + balanceLabel + '</small>')
+            container.append(line)
+        })
+    }
+
+    function clearCartContents() {
+        $('#POS-field table tbody').empty()
+        currentSelectedProductId = null
+        $('#order-qty').val(1)
+        calc()
+    }
+
     function findOrderRow(productId) {
         return $('#POS-field table tbody input[name="product_id[]"][value="' + productId + '"]').closest('tr')
     }
@@ -225,7 +540,7 @@
     function getRequestedQuantity(selector, fieldLabel) {
         var qtyInput = $(selector)
         var rawValue = qtyInput.val()
-        var qty = parseInt(rawValue, 10)
+        var qty = parseQtyValue(rawValue)
 
         if (String(rawValue).trim() === '') {
             showPosMessage('Informe a quantidade em ' + fieldLabel + '.', 'danger')
@@ -239,7 +554,7 @@
             return null
         }
 
-        qtyInput.val(qty)
+        qtyInput.val(formatQtyValue(qty))
         return qty
     }
 
@@ -303,18 +618,57 @@
         }
     }
 
+    function loadOpenComanda(comandaId) {
+        var comanda = openComandasMap[String(comandaId)]
+        if (!comanda) {
+            showPosMessage('Comanda nao encontrada na lista atual.', 'danger')
+            return false
+        }
+        if ($('#POS-field table tbody tr').length > 0 && confirm('Deseja substituir o carrinho atual pela comanda ' + comanda.comanda_code + ' (ID #' + comanda.id + ')?') !== true) {
+            return false
+        }
+
+        clearCartContents()
+        $('[name="sale_id"]').val(comanda.id)
+        $('[name="sale_action"]').val('checkout')
+        $('[name="customer_id"]').val(comanda.customer_id || '')
+        $('[name="comanda_code"]').val(comanda.comanda_code)
+        $('#comanda-code').val(comanda.comanda_code)
+        $('[name="customer_name"]').val(comanda.customer_name || '')
+        $('[name="customer_phone"]').val(comanda.customer_phone || '')
+
+        var missingProducts = []
+        comanda.items.forEach(function(item) {
+            var product = prod_arr[String(item.product_id)]
+            if (!product) {
+                missingProducts.push(item.product_id)
+                return
+            }
+            addProductToOrder(product, item.qty, item.price)
+        })
+
+        updateCurrentSaleLabel()
+        if (missingProducts.length > 0) {
+            showPosMessage('Alguns itens da comanda nao estao mais disponiveis: ' + missingProducts.join(', ') + '.', 'warning')
+        } else {
+            showPosMessage('Comanda ' + comanda.comanda_code + ' carregada no caixa.', 'success')
+        }
+        focusBarcodeInput()
+        return true
+    }
+
     function bindRowEvents(tr, data) {
         tr.on('click', function() {
             setSelectedProduct(data.id)
         })
         tr.find('[name="qty[]"]').on('input keypress keyup keydown', function() {
-            var currentQty = parseInt($(this).val(), 10)
+            var currentQty = parseQtyValue($(this).val())
             if (isNaN(currentQty) || currentQty <= 0) {
-                $(this).val(1)
+                $(this).val('1')
                 currentQty = 1
             }
-            if (data.quantity >= 0 && currentQty > data.quantity) {
-                $(this).val(data.quantity)
+            if (!data.infinite_stock && data.quantity >= 0 && currentQty > data.quantity) {
+                $(this).val(formatQtyValue(data.quantity))
                 showPosMessage('Quantidade ajustada ao estoque disponivel para ' + data.name + '.', 'warning')
             }
             if (currentSelectedProductId === String(data.id)) {
@@ -322,8 +676,19 @@
             }
             calc()
         })
+        tr.find('[name="price[]"]').on('input', function() {
+            calc()
+        }).on('blur', function() {
+            var currentPrice = parsePriceValue($(this).val())
+            var basePrice = parseFloat(data.price)
+            if (isNaN(currentPrice) || currentPrice <= 0) {
+                currentPrice = basePrice
+            }
+            $(this).val(currentPrice.toFixed(2))
+            calc()
+        })
         tr.find('.rem-item').click(function() {
-            if (confirm('Tem certeza de que deseja remover o produto ' + data.name + ' da lista?') == true) {
+            if (confirm('Tem certeza de que deseja remover o produto ' + data.name + ' da lista?') === true) {
                 if (currentSelectedProductId === String(data.id)) {
                     setSelectedProduct(null)
                 }
@@ -344,8 +709,8 @@
             return false
         }
 
-        var availableQty = parseInt(selectedProduct.quantity, 10)
-        if (!isNaN(availableQty) && qty > availableQty) {
+        var availableQty = parseFloat(selectedProduct.quantity)
+        if (!selectedProduct.infinite_stock && !isNaN(availableQty) && qty > availableQty) {
             showPosMessage('Estoque insuficiente para ' + selectedProduct.name + '. Disponivel: ' + availableQty + '.', 'danger')
             return false
         }
@@ -362,53 +727,58 @@
         return true
     }
 
-    function addProductToOrder(data, qty) {
+    function addProductToOrder(data, qty, unitPriceOverride) {
         if (!data) {
             showPosMessage('Produto nao encontrado para o codigo informado.', 'danger')
             return false
         }
 
-        qty = parseInt(qty, 10)
+        qty = parseQtyValue(qty)
         if (isNaN(qty) || qty <= 0) {
             qty = 1
         }
 
-        var availableQty = parseInt(data.quantity, 10)
-        if (!isNaN(availableQty) && availableQty <= 0) {
+        if (!data.infinite_stock && !isNaN(parseFloat(data.quantity)) && parseFloat(data.quantity) <= 0) {
             showPosMessage('O produto ' + data.name + ' esta sem estoque.', 'danger')
             return false
         }
 
-        var existingRow = $('#POS-field table tbody input[name="product_id[]"][value="' + data.id + '"]').closest('tr')
+        var availableQty = parseFloat(data.quantity)
+        var existingRow = findOrderRow(String(data.id))
         if (existingRow.length > 0) {
             var qtyInput = existingRow.find('[name="qty[]"]')
-            var currentQty = parseInt(qtyInput.val(), 10)
+            var currentQty = parseQtyValue(qtyInput.val())
             var newQty = (isNaN(currentQty) ? 0 : currentQty) + qty
 
-            if (!isNaN(availableQty) && newQty > availableQty) {
+            if (!data.infinite_stock && !isNaN(availableQty) && newQty > availableQty) {
                 showPosMessage('Estoque insuficiente para ' + data.name + '. Disponivel: ' + availableQty + '.', 'danger')
                 return false
             }
 
-            qtyInput.val(newQty)
+            qtyInput.val(formatQtyValue(newQty))
             calc()
             setSelectedProduct(data.id)
             showPosMessage(data.name + ' atualizado no carrinho.', 'success')
             return true
         }
 
-        if (!isNaN(availableQty) && qty > availableQty) {
+        if (!data.infinite_stock && !isNaN(availableQty) && qty > availableQty) {
             showPosMessage('Estoque insuficiente para ' + data.name + '. Disponivel: ' + availableQty + '.', 'danger')
             return false
         }
 
+        var basePrice = parseFloat(data.price)
+        var unitPrice = parsePriceValue(unitPriceOverride)
+        if (isNaN(unitPrice) || unitPrice <= 0) {
+            unitPrice = basePrice
+        }
+
         var tr = $($('noscript#item-clone').html()).clone()
-        tr.find('[name="qty[]"]').val(qty)
+        tr.find('[name="qty[]"]').val(formatQtyValue(qty))
         tr.find('[name="product_id[]"]').val(data.id)
-        tr.find('[name="price[]"]').val(data.price)
+        tr.find('[name="price[]"]').val(unitPrice.toFixed(2))
         tr.find('.product_name').html('<div>' + data.name + '</div><small class="text-muted">Cod. ' + data.code + '</small>')
-        tr.find('.product_price').text(formatBRL(data.price))
-        tr.find('.product_total').text(formatBRL(data.price * qty))
+        tr.find('.product_total').text(formatBRL(unitPrice * qty))
         $('#POS-field table tbody').append(tr)
         bindRowEvents(tr, data)
         calc()
@@ -443,13 +813,13 @@
     }
 
     function calc() {
-        var sub_total = 0;
-        var grand_total = 0;
+        var sub_total = 0
         $('#POS-field table tbody tr').each(function() {
-            price = $(this).find('[name="price[]"]').val()
-            qty = $(this).find('[name="qty[]"]').val()
+            var price = parsePriceValue($(this).find('[name="price[]"]').val())
+            var qty = parseQtyValue($(this).find('[name="qty[]"]').val())
+            price = price > 0 ? price : 0
             qty = qty > 0 ? qty : 0
-            total = parseFloat(price) * parseFloat(qty)
+            var total = parseFloat(price) * parseFloat(qty)
             $(this).find('.product_total').text(formatBRL(total))
             sub_total += parseFloat(total)
         })
@@ -457,32 +827,265 @@
         $('[name="grand_total"]').val(parseFloat(sub_total))
         $('#sub_total').text(formatBRL(sub_total))
         $('[name="sub_total"]').val(parseFloat(sub_total))
-
     }
+
     function cancelSale() {
-        if (confirm('Tem certeza de que deseja cancelar a venda e limpar o carrinho? Todos os produtos serão removidos.') !== true) {
+        var saleId = String($('[name="sale_id"]').val() || '').trim()
+        var msgText = 'Tem certeza de que deseja cancelar a venda e limpar o carrinho? Todos os produtos serao removidos.'
+        
+        if (saleId) {
+            msgText = 'Tem certeza de que deseja DELETAR esta comanda em aberto? Esta ação não pode ser desfeita.'
+        }
+        
+        if (confirm(msgText) !== true) {
             return false
         }
-        $('#POS-field table tbody').empty()
-        currentSelectedProductId = null
-        $('#order-qty').val(1)
-        calc()
+        
+        if (saleId) {
+            // Se há sale_id, deletar do banco via AJAX
+            start_loader()
+            $.ajax({
+                headers: {
+                    'X-CSRFToken': '{{csrf_token}}'
+                },
+                url: '{% url "delete-sale" %}',
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    id: saleId
+                },
+                error: function(err) {
+                    console.log('Erro ao deletar comanda:', err)
+                    end_loader()
+                    showPosMessage('Erro ao deletar a comanda. Tente novamente.', 'danger')
+                },
+                success: function(resp) {
+                    end_loader()
+                    if (typeof resp === 'object' && resp.status === 'success') {
+                        showPosMessage('Comanda deletada com sucesso. Recarregando...', 'success')
+                        setTimeout(function() {
+                            location.reload()
+                        }, 1500)
+                    } else {
+                        showPosMessage(resp.msg || 'Erro ao deletar a comanda.', 'danger')
+                    }
+                }
+            })
+            return true
+        }
+        
+        // Se não há sale_id, só limpa o carrinho (venda avulsa)
+        clearCartContents()
+        resetSaleContext()
         showPosMessage('Venda cancelada. Carrinho limpo.', 'warning')
         focusBarcodeInput()
         return true
     }
 
+    window.applySelectedCustomerToPos = function(payload) {
+        var customerName = String((payload && payload.name) || '').trim()
+        var customerPhone = String((payload && payload.phone) || '').trim()
+        var customerId = String((payload && payload.id) || '').trim()
+        if (!customerName || !customerId) {
+            return
+        }
+
+        $('[name="customer_id"]').val(customerId)
+        $('[name="customer_name"]').val(customerName)
+        $('[name="customer_phone"]').val(customerPhone)
+        console.log('applySelectedCustomerToPos set customer', {customerId: customerId, customerName: customerName, customerPhone: customerPhone})
+
+        var alreadyExists = customer_list.some(function(customer) {
+            return String(customer.id) === customerId
+        })
+        if (!alreadyExists) {
+            customer_list.push({
+                id: customerId,
+                name: customerName,
+                phone: customerPhone
+            })
+        }
+
+        updateCurrentSaleLabel()
+        updateCustomerStatusAlert()
+        var message = 'Cliente cadastrado selecionado e vinculado à comanda atual.'
+        if (window._saveComandaFromModal) {
+            message += ' Salvando comanda...'
+        }
+        showPosMessage(message, 'success')
+    }
+
+    function closeCustomerModalOverlay() {
+        $('#create-customer-overlay').addClass('d-none')
+        $('#new-customer-name').val('')
+        $('#new-customer-phone').val('')
+    }
+
+    function appendCustomerRowToModal(customer) {
+        var tbody = $('#select-customer-table tbody')
+        if (tbody.length <= 0) {
+            return
+        }
+        if (tbody.find('.select-customer').length <= 0) {
+            tbody.empty()
+        }
+        var rowHtml = '' +
+            '<tr>' +
+            '<td class="text-center">' + customer.id + '</td>' +
+            '<td class="customer-name">' + customer.name + '</td>' +
+            '<td class="customer-phone">' + (customer.phone || '-') + '</td>' +
+            '<td class="text-center">' +
+            '<button type="button" class="btn btn-primary btn-sm rounded-0 select-customer" data-id="' + customer.id + '" data-name="' + customer.name + '" data-phone="' + (customer.phone || '') + '">Selecionar</button>' +
+            '</td>' +
+            '</tr>'
+        tbody.prepend(rowHtml)
+    }
+
+    function submitCustomerFromPosModal(confirmDuplicateUpdate) {
+        var name = String($('#new-customer-name').val() || '').trim()
+        var phone = String($('#new-customer-phone').val() || '').trim()
+
+        if (!name) {
+            alert('Informe o nome do cliente.')
+            $('#new-customer-name').trigger('focus')
+            return
+        }
+
+        $.ajax({
+            headers: {
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            url: '{% url "save-customer-page" %}',
+            method: 'POST',
+            dataType: 'json',
+            data: {
+                name: name,
+                phone: phone,
+                active: '1',
+                require_duplicate_confirmation: '1',
+                confirm_duplicate_update: confirmDuplicateUpdate ? '1' : '0'
+            },
+            error: function() {
+                alert('Falha ao cadastrar cliente.')
+            },
+            success: function(resp) {
+                if (typeof resp === 'object' && resp.status === 'confirm_required') {
+                    if (confirm(resp.msg || 'Esse cliente ja existe. Deseja sobrepor/atualizar o cadastro existente?') !== true) {
+                        return
+                    }
+                    submitCustomerFromPosModal(true)
+                    return
+                }
+
+                if (typeof resp === 'object' && resp.status === 'success') {
+                    var payload = {
+                        id: resp.customer_id,
+                        name: resp.customer_name,
+                        phone: resp.customer_phone || ''
+                    }
+                    console.log('submitCustomerFromPosModal success', payload)
+                    appendCustomerRowToModal(payload)
+                    window.applySelectedCustomerToPos(payload)
+                    if (window._saveComandaFromModal) {
+                        window._saveComandaSelectedCustomer = true
+                    }
+                    closeCustomerModalOverlay()
+                    var active = document.activeElement
+                    if (active && $('#uni_modal')[0].contains(active)) {
+                        active.blur()
+                    }
+                    $('#uni_modal').modal('hide')
+                    return
+                }
+
+                alert((resp && resp.msg) || 'Nao foi possivel cadastrar o cliente.')
+            }
+        })
+    }
+
     $(function() {
+        renderOpenComandasList()
+        resetSaleContext()
         focusBarcodeInput()
 
         $('#cancel_sale').click(function() {
             cancelSale()
         })
+        $('#new_sale').click(function() {
+            cancelSale()
+        })
         $('#add_item').click(function() {
             addProductFromSelect()
         })
-        $('#barcode-add').click(function() {
-            addProductFromBarcode()
+        $('#save_comanda').click(function() {
+            openSaveComandaModal()
+        })
+        $(document).on('click', '.select-customer', function() {
+            var payload = {
+                id: $(this).attr('data-id'),
+                name: $(this).attr('data-name'),
+                phone: $(this).attr('data-phone')
+            }
+            window.applySelectedCustomerToPos(payload)
+            if (window._saveComandaFromModal) {
+                window._saveComandaSelectedCustomer = true
+            }
+            var active = document.activeElement
+            if (active && $('#uni_modal')[0].contains(active)) {
+                active.blur()
+            }
+            $('#uni_modal').modal('hide')
+            
+            // Se estamos salvando comanda, submete automaticamente após selecionar cliente
+            if (window._saveComandaFromModal) {
+                setTimeout(function() {
+                    submitSaveComandaAfterSelection()
+                }, 200)
+            }
+        })
+        $(document).on('click', '#open-create-customer-overlay', function() {
+            $('#create-customer-overlay').removeClass('d-none')
+            $('#new-customer-name').trigger('focus')
+        })
+        $(document).on('click', '#cancel-create-customer', function() {
+            closeCustomerModalOverlay()
+        })
+        $(document).on('click', '#clear-linked-customer', function() {
+            clearLinkedCustomer()
+        })
+        $(document).on('click', '#save-create-customer', function() {
+            submitCustomerFromPosModal(false)
+        })
+        $(document).on('click', '#save-comanda-open-existing', function() {
+            openSaveComandaCustomerSelection(false)
+        })
+        $(document).on('click', '#save-comanda-register-client', function() {
+            registerCustomerAndSaveComanda(false)
+        })
+        $(document).on('click', '#save-comanda-submit', function() {
+            submitSaveComandaModal()
+        })
+        $(document).on('input', '#select-customer-search', function() {
+            var term = String($(this).val() || '').toLowerCase().trim()
+            $('#select-customer-table tbody tr').each(function() {
+                var row = $(this)
+                var name = String(row.find('.customer-name').text() || '').toLowerCase()
+                var phone = String(row.find('.customer-phone').text() || '').toLowerCase()
+                if (!term || name.indexOf(term) >= 0 || phone.indexOf(term) >= 0) {
+                    row.show()
+                } else {
+                    row.hide()
+                }
+            })
+        })
+        $('#comanda-code').on('input', function() {
+            var normalized = $(this).val().toUpperCase()
+            $(this).val(normalized)
+            $('[name="comanda_code"]').val(normalized.trim())
+            updateCurrentSaleLabel()
+        })
+        $(document).on('click', '.open-comanda-item', function() {
+            loadOpenComanda($(this).attr('data-id'))
         })
         $('#barcode-input').on('input', function() {
             updateQuickSearchOptions($(this).val())
@@ -493,7 +1096,6 @@
         $('#barcode-input').on('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault()
-                // Aguarda o datalist aplicar a opcao escolhida antes de adicionar ao caixa.
                 setTimeout(function() {
                     addProductFromBarcode()
                 }, 0)
@@ -503,7 +1105,7 @@
             if (e.ctrlKey || e.altKey || e.metaKey) {
                 return
             }
-            if ($(e.target).is('#barcode-input, textarea, [contenteditable="true"]')) {
+            if ($(e.target).is('#barcode-input, textarea, [contenteditable="true"], [name="price[]"]')) {
                 return
             }
             if (e.key === 'Enter') {
@@ -522,11 +1124,9 @@
             }
 
             var now = Date.now()
-
             if (!scannerLastKeyAt || (now - scannerLastKeyAt) > scannerThresholdMs) {
                 scannerBuffer = ''
             }
-
             scannerBuffer += e.key
             scannerLastKeyAt = now
 
@@ -543,28 +1143,53 @@
         $('#check_out').click(function() {
             if ($('#POS-field table tbody tr').length <= 0) {
                 showPosMessage('Adicione pelo menos 1 produto primeiro.', 'danger')
-                return false;
+                return false
             }
             calc()
-            uni_modal("Finalizar Compra", "{% url 'checkout-modal' %}?grand_total=" + $('[name="grand_total"]').val())
+            $('[name="sale_action"]').val('checkout')
+            $('[name="comanda_code"]').val($('#comanda-code').val().trim().toUpperCase())
+            var saleId = $('[name="sale_id"]').val().trim()
+            var modalUrl = '{% url "checkout-modal" %}?grand_total=' + $('[name="grand_total"]').val() + '&comanda_code=' + encodeURIComponent($('#comanda-code').val().trim().toUpperCase())
+            if (saleId) {
+                modalUrl += '&sale_id=' + encodeURIComponent(saleId)
+            }
+            uni_modal('Finalizar Compra', modalUrl)
         })
         $('#pos-form').submit(function(e) {
-            e.preventDefault();
+            e.preventDefault()
             var _this = $(this)
-            $('.err-msg').remove();
+            $('.err-msg').remove()
             var el = $('<div>')
-            el.addClass("alert alert-danger err-msg")
+            el.addClass('alert alert-danger err-msg')
             el.hide()
-            if (_this[0].checkValidity() == false) {
-                _this[0].reportValidity();
-                return false;
+            // Debug: log customer fields and full FormData before submitting
+            try {
+                console.log('POS submit - customer_id=', $('[name="customer_id"]').val(), 'customer_name=', $('[name="customer_name"]').val(), 'customer_phone=', $('[name="customer_phone"]').val())
+                var fd = new FormData($(this)[0]);
+                for (var pair of fd.entries()) {
+                    console.log('FormData:', pair[0], '=', pair[1])
+                }
+            } catch (e) {
+                console.log('Debug FormData failed', e)
             }
-            start_loader();
+            var saleAction = String($('[name="sale_action"]').val() || '').trim().toLowerCase()
+            var customerId = String($('[name="customer_id"]').val() || '').trim()
+            var customerName = String($('[name="customer_name"]').val() || '').trim()
+            if (customerId && !/^[0-9]+$/.test(customerId)) {
+                showPosMessage('⚠️ ID de cliente inválido. Seleciona ou cadastra novamente o cliente.', 'danger')
+                console.error('❌ Tentativa de submit com customer_id inválido:', customerId)
+                return false
+            }
+            if (_this[0].checkValidity() === false) {
+                _this[0].reportValidity()
+                return false
+            }
+            start_loader()
             $.ajax({
                 headers: {
-                    "X-CSRFToken": '{{csrf_token}}'
+                    'X-CSRFToken': '{{csrf_token}}'
                 },
-                url: "{% url 'save-pos' %}",
+                url: '{% url "save-pos" %}',
                 data: new FormData($(this)[0]),
                 cache: false,
                 contentType: false,
@@ -572,28 +1197,44 @@
                 method: 'POST',
                 type: 'POST',
                 dataType: 'json',
-                error: err => {
+                error: function(err) {
                     console.log(err)
-                    end_loader();
+                    end_loader()
                 },
                 success: function(resp) {
-                    if (typeof resp == 'object' && resp.status == 'success') {
-                        el.removeClass("alert alert-danger err-msg")
-                            // location.reload()
-                        uni_modal("Recibo", "{% url 'receipt-modal' %}?id=" + resp.sale_id)
-                        $('#uni_modal').on('hide.bs.modal', function() {
+                    if (typeof resp === 'object' && resp.status === 'success') {
+                        el.removeClass('alert alert-danger err-msg')
+                        console.log('SUCCESS RESPONSE:', resp)
+                        if (resp.debug) {
+                            var debugHtml = '<div class="alert alert-info mt-3"><strong>🔍 DEBUG DADOS DA COMANDA:</strong><br>'
+                            debugHtml += 'ID Comanda: <strong>' + resp.debug.sale_id + '</strong><br>'
+                            debugHtml += 'Cliente: <strong>' + resp.debug.customer_name + '</strong><br>'
+                            debugHtml += 'Código: <strong>' + resp.debug.comanda_code + '</strong><br>'
+                            debugHtml += 'Status: <strong>' + resp.debug.sale_status + '</strong><br>'
+                            debugHtml += 'Itens: <strong>' + resp.debug.items_count + '</strong></div>'
+                            $('#pos-feedback').after(debugHtml)
+                        }
+                        if (resp.sale_action === 'open_comanda') {
+                            showPosMessage(resp.msg || 'Comanda salva com sucesso.', 'success')
+                            setTimeout(function() {
+                                location.reload()
+                            }, 2000)
+                            return
+                        }
+                        uni_modal('Recibo', '{% url "receipt-modal" %}?id=' + resp.sale_id)
+                        $('#uni_modal').off('hide.bs.modal').on('hide.bs.modal', function() {
                             location.reload()
                         })
-                    } else if (resp.status == 'failed' && !!resp.msg) {
+                    } else if (resp.status === 'failed' && !!resp.msg) {
                         el.text(resp.msg)
                     } else {
-                        el.text("Ocorreu um erro", 'error');
-                        end_loader();
-                        console.err(resp)
+                        el.text('Ocorreu um erro')
+                        end_loader()
+                        console.log(resp)
                     }
                     _this.prepend(el)
                     el.show('slow')
-                    $("html, body, .modal").scrollTop(0);
+                    $('html, body, .modal').scrollTop(0)
                     end_loader()
                 }
             })

@@ -1,17 +1,18 @@
 {% load humanize %}
 <div class="container-fluid">
-    <form action="" id="checkout-form">
-        <div class="form-group mb-3">
-            <label for="payable_amount" class="control-label">Valor a Pagar</label>
-            <input type="text" id="payable_amount" class="form-control form-control-lg rounded-0 text-end" value="{{ grand_total|intcomma }}" required disabled>
+    <form action="" method="post" id="checkout-form">
+        {% csrf_token %}
+        {% if comanda_code %}
+        <div class="alert alert-info rounded-0" role="alert">
+            Fechando a comanda <strong>{{ comanda_code }}</strong>{% if customer_name %} do cliente <strong>{{ customer_name }}</strong>{% endif %}.
+            {% if remaining_due is not None %}
+            <div class="mt-1 small">Saldo restante: <strong>{{ remaining_due|floatformat:2 }}</strong></div>
+            {% endif %}
         </div>
+        {% endif %}
         <div class="form-group mb-3">
-            <label for="tendered_amount" class="control-label">Valor Pago</label>
-            <input type="text" id="tendered_amount" class="form-control form-control-lg rounded-0 text-end" value="R$ 0,00" inputmode="decimal" required>
-        </div>
-        <div class="form-group mb-3">
-            <label for="payment_change" class="control-label">Troco</label>
-            <input type="text" id="payment_change" class="form-control form-control-lg rounded-0 text-end" value="{{ 0|intcomma }}" required disabled>
+            <label for="sub_total_amount" class="control-label">Subtotal</label>
+            <input type="text" id="sub_total_amount" class="form-control form-control-lg rounded-0 text-end" value="{{ grand_total|intcomma }}" required disabled>
         </div>
         <div class="form-group mb-2">
             <label class="control-label d-block mb-2">Forma de Pagamento <span class="text-danger">*</span></label>
@@ -38,17 +39,73 @@
                 </div>
             </div>
         </div>
-        <div class="form-group mb-3">
+        <div class="form-group mb-3" id="payment-other-detail-group">
             <label for="payment_other_detail" class="control-label">Detalhe do Outro (opcional)</label>
             <input type="text" id="payment_other_detail" class="form-control rounded-0" maxlength="120" placeholder="Ex.: Vale, Fiado, Transferencia" disabled>
         </div>
         <div id="payment-method-alert" class="alert alert-danger rounded-0 d-none" role="alert">
             Selecione pelo menos uma forma de pagamento principal: Credito, Debito, Pix ou Dinheiro.
         </div>
+        <!-- Campo Desconto Aplicado movido para junto dos campos de desconto -->
+        <div class="form-group mb-3">
+            <label for="payable_amount" class="control-label">Valor a Pagar</label>
+            <input type="text" id="payable_amount" class="form-control form-control-lg rounded-0 text-end" value="{{ grand_total|intcomma }}" required disabled>
+        </div>
+        <div class="form-group mb-3">
+            <label for="tendered_amount" class="control-label">Valor Pago</label>
+            <input type="text" id="tendered_amount" class="form-control form-control-lg rounded-0 text-end" value="R$ 0,00" inputmode="decimal" required disabled>
+        </div>
+        <div class="form-group mb-3">
+            <label for="payment_change" class="control-label">Troco</label>
+            <input type="text" id="payment_change" class="form-control form-control-lg rounded-0 text-end" value="{{ 0|intcomma }}" required disabled>
+        </div>
+        <div class="form-group mb-3 d-none" id="pending-amount-group">
+            <label for="pending_amount" class="control-label">Valor Pendente</label>
+            <input type="text" id="pending_amount" class="form-control form-control-lg rounded-0 text-end" value="R$ 0,00" inputmode="decimal" disabled>
+        </div>
+
+        <div class="alert alert-warning rounded-0 d-none" role="alert" id="checkout-open-comanda-warning">
+            Esta venda tem valor pendente e será salva como comanda em aberto.
+            <div class="mt-1"><strong>Valor restante:</strong> <span id="checkout-open-comanda-remaining">R$ 0,00</span></div>
+        </div>
+        <div class="card card-body rounded-0 border d-none" id="checkout-open-comanda-confirmation">
+            <div class="mb-3">
+                <label for="checkout-open-comanda-name" class="form-label">Identificador da Comanda (opcional)</label>
+                <input type="text" id="checkout-open-comanda-name" class="form-control form-control-sm rounded-0" placeholder="Digite o nome ou código da comanda" maxlength="150">
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-warning btn-sm rounded-0" id="checkout-open-comanda-save">Salvar em Aberto</button>
+                <button type="button" class="btn btn-secondary btn-sm rounded-0" id="checkout-open-comanda-cancel">Voltar</button>
+            </div>
+        </div>
+
+        <!-- Campos de desconto movidos para o final -->
+        <div class="row mt-2">
+            <div class="col-md-4">
+                <div class="form-group mb-3">
+                    <label for="discount_type" class="control-label">Tipo de Desconto</label>
+                    <select id="discount_type" class="form-select rounded-0">
+                        <option value="VALUE">Valor (R$)</option>
+                        <option value="PERCENT">Percentual (%)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="form-group mb-3">
+                    <label for="discount_value" class="control-label">Desconto</label>
+                    <input type="text" id="discount_value" class="form-control form-control-lg rounded-0 text-end" value="R$ 0,00" inputmode="decimal">
+                </div>
+            </div>
+        </div>
+        <div class="form-group mb-3">
+            <label for="discount_amount" class="control-label">Desconto Aplicado</label>
+            <input type="text" id="discount_amount" class="form-control form-control-lg rounded-0 text-end" value="R$ 0,00" required disabled>
+        </div>
     </form>
 </div>
-<script>
-    $(function() {
+
+    <script>
+    $(function () {
         function formatBRL(value) {
             return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
         }
@@ -65,10 +122,73 @@
             return isNaN(parsed) ? 0 : parsed
         }
 
+        function clampDiscount(subTotal, discountType, discountValue) {
+            var normalizedValue = discountValue > 0 ? discountValue : 0
+            if (discountType === 'PERCENT') {
+                if (normalizedValue > 100) {
+                    normalizedValue = 100
+                }
+                return {
+                    discountValue: normalizedValue,
+                    discountAmount: subTotal * (normalizedValue / 100)
+                }
+            }
+            if (normalizedValue > subTotal) {
+                normalizedValue = subTotal
+            }
+            return {
+                discountValue: normalizedValue,
+                discountAmount: normalizedValue
+            }
+        }
+
+
+        function updateTotals() {
+            var subTotal = parseBRL($('#sub_total_amount').val())
+            var discountType = $('#discount_type').val()
+            var discountValue = parseBRL($('#discount_value').val())
+            var discountData = clampDiscount(subTotal, discountType, discountValue)
+            var payable = subTotal - discountData.discountAmount
+            var tenderedAmount = parseBRL($('#tendered_amount').val())
+            var outroChecked = $('#payment_outro').is(':checked')
+            var dinheiroChecked = $('#payment_dinheiro').is(':checked')
+
+            if (discountType === 'PERCENT') {
+                $('#discount_value').val(String(discountData.discountValue.toFixed(2)).replace('.', ','))
+            }
+
+            $('#discount_amount').val(formatBRL(discountData.discountAmount))
+            $('#payable_amount').val(formatBRL(payable))
+            $('[name="discount_type"]').val(discountType)
+            $('[name="discount_value"]').val(discountData.discountValue)
+            $('[name="tendered_amount"]').val(tenderedAmount > 0 ? tenderedAmount : 0)
+
+            // Lógica de valor pendente/troco
+            var pendente = 0
+            var change = tenderedAmount - payable
+            if ((outroChecked || dinheiroChecked) && tenderedAmount < payable) {
+                pendente = payable - tenderedAmount
+                $('#pending-amount-group').removeClass('d-none')
+                $('#pending_amount').val(formatBRL(pendente))
+                $('#payment_change').val(formatBRL(0))
+                $('#payment_change').prop('disabled', true)
+            } else {
+                $('#pending-amount-group').addClass('d-none')
+                $('#pending_amount').val(formatBRL(0))
+                $('#payment_change').val(formatBRL(change))
+                // Só habilita Troco se Dinheiro ou Outro estiver marcado
+                var enable = dinheiroChecked || outroChecked
+                $('#payment_change').prop('disabled', !enable)
+            }
+            $('[name="amount_change"]').val(change)
+        }
+
+        $('#sub_total_amount').val(formatBRL(parseBRL($('#sub_total_amount').val())))
         $('#payable_amount').val(formatBRL(parseBRL($('#payable_amount').val())))
+        $('#discount_amount').val(formatBRL(0))
         $('#payment_change').val(formatBRL(0))
         $('#tendered_amount').val(formatBRL(0))
-        $('#payment_dinheiro').prop('checked', true)
+        $('#discount_value').val(formatBRL(0))
 
         function hidePaymentAlert() {
             $('#payment-method-alert').addClass('d-none')
@@ -99,36 +219,148 @@
             }
         })
 
+        $('#discount_type').on('change', function() {
+            if ($(this).val() === 'PERCENT') {
+                $('#discount_value').val('0,00')
+            } else {
+                $('#discount_value').val(formatBRL(0))
+            }
+            updateTotals()
+        })
+
+        $('#discount_value').on('focus', function() {
+            $(this).val(parseBRL($(this).val()).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
+            $(this).select()
+        })
+
+        $('#discount_value').on('input keypress keyup keydown blur', function() {
+            updateTotals()
+        })
+
+        // Habilita/desabilita campos Valor Pago e Troco conforme Dinheiro ou Outro
+        function toggleValorPagoFields() {
+            var dinheiroChecked = $('#payment_dinheiro').is(':checked')
+            var outroChecked = $('#payment_outro').is(':checked')
+            var creditoChecked = $('#payment_credito').is(':checked')
+            var debitoChecked = $('#payment_debito').is(':checked')
+            var pixChecked = $('#payment_pix').is(':checked')
+            var enable = dinheiroChecked || outroChecked
+            var isCardPayment = creditoChecked || debitoChecked || pixChecked
+            
+            $('#tendered_amount').prop('disabled', !enable)
+            $('#payment_change').prop('disabled', !enable)
+            
+            if (!enable && isCardPayment) {
+                // Se é débito/crédito/pix, preenche automaticamente com o valor total
+                var payableAmount = parseBRL($('#payable_amount').val())
+                $('#tendered_amount').val(formatBRL(payableAmount))
+                $('#payment_change').val(formatBRL(0))
+            } else if (!enable) {
+                $('#tendered_amount').val(formatBRL(0))
+                $('#payment_change').val(formatBRL(0))
+            }
+        }
+
+        $('.payment-method-main, #payment_dinheiro, #payment_outro').on('change', function() {
+            toggleValorPagoFields()
+        })
+        toggleValorPagoFields()
+
         $('#tendered_amount').on('focus', function() {
+            if ($(this).prop('disabled')) return;
             $(this).val(parseBRL($(this).val()).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
             $(this).select()
         })
 
         $('#tendered_amount').on('input keypress keyup keydown', function() {
-            var tendered_amount = $('#tendered_amount').val()
-            var payable = $('#payable_amount').val()
-            tendered_amount = parseBRL(tendered_amount)
-            payable = parseBRL(payable)
-            var change = 0
-            tendered_amount = tendered_amount > 0 ? tendered_amount : 0;
-            $('[name="tendered_amount"]').val(tendered_amount)
-            change = parseFloat(tendered_amount) - parseFloat(payable)
-            $('#payment_change').val(formatBRL(change))
-            $('[name="amount_change"]').val(change)
-
+            if ($(this).prop('disabled')) return;
+            updateTotals()
         })
         $('#tendered_amount').on('blur', function() {
+            if ($(this).prop('disabled')) return;
             $(this).val(formatBRL(parseBRL($(this).val())))
+            updateTotals()
         })
+
+        // Alterna campo Detalhe do Outro para anotação livre
+        function toggleOutroField() {
+            var outroChecked = $('#payment_outro').is(':checked')
+            if (outroChecked) {
+                $('#payment-other-detail-group label').text('Detalhe do Outro (opcional)')
+                $('#payment_other_detail').attr('placeholder', 'Ex.: Prazo, Fiado, Observação')
+                $('#payment_other_detail').prop('disabled', false)
+                $('#pending-amount-group').removeClass('d-none')
+            } else {
+                $('#payment-other-detail-group label').text('Detalhe do Outro (opcional)')
+                $('#payment_other_detail').attr('placeholder', 'Ex.: Vale, Fiado, Transferencia')
+                $('#payment_other_detail').prop('disabled', true)
+                $('#pending-amount-group').addClass('d-none')
+                $('#payment_other_detail').val('')
+            }
+        }
+        $('#payment_outro').on('change', function() {
+            toggleOutroField()
+        })
+        toggleOutroField()
+
+        // Inicializa campo pendente zerado
+        $('#pending_amount').val(formatBRL(0))
+        function showCheckoutOpenComandaConfirmation(remainingAmount) {
+            $('#checkout-open-comanda-remaining').text(formatBRL(remainingAmount))
+            var selectedCustomerName = String($('[name="customer_name"]').val() || '').trim()
+            $('#checkout-open-comanda-name').val(selectedCustomerName)
+            $('#checkout-open-comanda-warning').removeClass('d-none')
+            $('#checkout-open-comanda-confirmation').removeClass('d-none')
+        }
+
+        function hideCheckoutOpenComandaConfirmation() {
+            $('#checkout-open-comanda-warning').addClass('d-none')
+            $('#checkout-open-comanda-confirmation').addClass('d-none')
+        }
+
+        function submitCheckoutOpenComanda() {
+            var comandaLabel = String($('#checkout-open-comanda-name').val() || '').trim()
+            var currentCustomerId = String($('[name="customer_id"]').val() || '').trim()
+            if (!currentCustomerId) {
+                $('[name="customer_name"]').val('')
+                $('[name="customer_phone"]').val('')
+            }
+            $('[name="sale_action"]').val('open_comanda')
+            $('[name="comanda_code"]').val(comandaLabel || '')
+            var methods = getSelectedPaymentMethods()
+            $('[name="payment_methods"]').val(methods.join(','))
+            $('[name="payment_other_detail"]').val($('#payment_outro').is(':checked') ? $('#payment_other_detail').val().trim() : '')
+            hideCheckoutOpenComandaConfirmation()
+            $('#pos-form').submit()
+        }
+
+        $('#checkout-open-comanda-save').on('click', function() {
+            submitCheckoutOpenComanda()
+        })
+
+        $('#checkout-open-comanda-cancel').on('click', function() {
+            hideCheckoutOpenComandaConfirmation()
+        })
+
+        $('#uni_modal').off('click.checkout').on('click.checkout', '#submit', function() {
+            if ($('#checkout-form').length) {
+                $('#checkout-form').trigger('submit')
+            }
+        })
+
         $('#checkout-form').submit(function(e) {
             e.preventDefault();
-            if ($('[name="amount_change"]').val() < 0) {
-                alert("O valor pago é menor que o valor a pagar")
-                return false;
+            updateTotals()
+            var amountChange = parseFloat($('[name="amount_change"]').val() || 0);
+            var saleAction = String($('[name="sale_action"]').val() || '').trim().toLowerCase()
+            var methods = getSelectedPaymentMethods()
+
+            if (amountChange < 0) {
+                showCheckoutOpenComandaConfirmation(Math.abs(amountChange))
+                return false
             }
 
-            var methods = getSelectedPaymentMethods()
-            if ($('.payment-method-main:checked').length <= 0) {
+            if (saleAction === 'checkout' && $('.payment-method-main:checked').length <= 0) {
                 $('#payment-method-alert').removeClass('d-none')
                 return false
             }
@@ -138,5 +370,7 @@
 
             $('#pos-form').submit()
         })
+
+        updateTotals()
     })
 </script>

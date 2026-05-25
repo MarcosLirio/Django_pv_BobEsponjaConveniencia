@@ -1,0 +1,45 @@
+<div class="container-fluid">
+    <style>
+        .modal-headline { background: #f5f9ff; border-left: 3px solid #386fa4; padding: .55rem .65rem; margin-bottom: .75rem; font-size: .82rem; }
+    </style>
+    <form id="supplier-form">
+        <div class="modal-headline">Dados principais do fornecedor</div>
+        <input type="hidden" name="id" value="{% if supplier.pk %}{{ supplier.pk }}{% endif %}">
+        <div class="form-group mb-2">
+            <label for="name">Nome</label>
+            <input type="text" name="name" id="name" class="form-control form-control-sm rounded-0" value="{% if supplier.name %}{{ supplier.name }}{% endif %}" required>
+        </div>
+        <div class="form-group mb-2">
+            <label for="phone">Telefone</label>
+            <input type="text" name="phone" id="phone" class="form-control form-control-sm rounded-0" value="{% if supplier.phone %}{{ supplier.phone }}{% endif %}">
+        </div>
+        <div class="form-group mb-2">
+            <label for="address">Endereco (opcional)</label>
+            <textarea name="address" id="address" rows="3" class="form-control form-control-sm rounded-0">{% if supplier.address %}{{ supplier.address }}{% endif %}</textarea>
+        </div>
+        <div class="form-group mb-2">
+            <label for="active">Status</label>
+            <select name="active" id="active" class="form-select form-select-sm rounded-0">
+                <option value="1" {% if supplier.active or not supplier.pk %}selected{% endif %}>Ativo</option>
+                <option value="0" {% if supplier.pk and not supplier.active %}selected{% endif %}>Inativo</option>
+            </select>
+        </div>
+    </form>
+</div>
+<script>
+$(function(){
+    $('#supplier-form').submit(function(e){
+        e.preventDefault()
+        var _this = $(this)
+        start_loader()
+        $.ajax({
+            headers:{'X-CSRFToken':'{{csrf_token}}'},
+            url:'{% url "save-supplier-page" %}',
+            data:new FormData(_this[0]),
+            cache:false,contentType:false,processData:false,method:'POST',dataType:'json',
+            success:function(resp){ if(resp.status==='success'){location.reload()} else { alert(resp.msg || 'Erro ao salvar fornecedor.'); end_loader()} },
+            error:function(){ end_loader() }
+        })
+    })
+})
+</script>

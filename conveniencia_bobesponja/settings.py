@@ -85,7 +85,7 @@ def build_csrf_trusted_origins(hosts, scheme):
 
 load_env_file(BASE_DIR / '.env')
 
-SECRET_KEY = 'django-insecure-9qeew0dcs+4ti&1+lg_q1bc3gd-gyhq%7sb%whr%eb=ou5n+0q'
+SECRET_KEY = '_5=35n%n^)ok3xxqe4-=-=zu=(^$m$q7%wb@_-xwwbp$c-t+kv'
 
 DEBUG = get_env_bool('DJANGO_DEBUG', True)
 
@@ -112,6 +112,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'conveniencia_bobesponja.no_cache_middleware.DisableClientCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

@@ -1,0 +1,59 @@
+<div class="container-fluid position-relative" id="select-customer-modal-root">
+    <div class="d-flex justify-content-between align-items-end mb-2 gap-2">
+        <div class="flex-grow-1">
+            <label for="select-customer-search" class="control-label">Buscar cliente</label>
+            <input type="text" id="select-customer-search" class="form-control form-control-sm rounded-0" placeholder="Digite nome ou telefone" value="{{ search_query|default:'' }}">
+        </div>
+        <button type="button" class="btn btn-success btn-sm rounded-0" id="open-create-customer-overlay">Cadastrar Cliente</button>
+    </div>
+
+    <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+        <table class="table table-sm table-striped table-bordered mb-0" id="select-customer-table">
+            <thead>
+                <tr>
+                    <th class="text-center">ID</th>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th class="text-center">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td class="text-center">{{ customer.id }}</td>
+                    <td class="customer-name">{{ customer.name }}</td>
+                    <td class="customer-phone">{{ customer.phone|default:'-' }}</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-primary btn-sm rounded-0 select-customer" data-id="{{ customer.id }}" data-name="{{ customer.name }}" data-phone="{{ customer.phone|default:'' }}">Selecionar</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-3">Nenhum cliente ativo encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="create-customer-overlay" class="position-absolute top-0 start-0 w-100 h-100 bg-white border p-3 d-none" style="z-index: 20;">
+        <h6 class="mb-3">Cadastrar Novo Cliente</h6>
+        <div class="form-group mb-2">
+            <label for="new-customer-name" class="control-label">Nome</label>
+            <input type="text" id="new-customer-name" class="form-control form-control-sm rounded-0" maxlength="150" placeholder="Nome do cliente">
+        </div>
+        <div class="form-group mb-3">
+            <label for="new-customer-phone" class="control-label">Telefone (opcional)</label>
+            <input type="text" id="new-customer-phone" class="form-control form-control-sm rounded-0" maxlength="30" placeholder="Telefone">
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary btn-sm rounded-0" id="cancel-create-customer">Cancelar</button>
+            <button type="button" class="btn btn-primary btn-sm rounded-0" id="save-create-customer">Salvar</button>
+        </div>
+    </div>
+</div>
+<script>
+    $(function() {
+        // A lógica de seleção/cadastro é tratada no POS para funcionar com modal carregado por AJAX.
+    })
+</script>

@@ -8,9 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> {% if page_title %}
     <title>{{ page_title }} | Sistema de Vendas</title>
     {% else %}
-    <title>Sistema de Vendasde Mercearia</title>
+    <title>Sistema de Vendas</title>
     {% endif %}
-    <link rel="stylesheet" href="{% static 'conveniencia_App/assets/default/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'conveniencia_App/assets/default/css/style.css' %}?v=20260521m">
     <link rel="stylesheet" href="{% static 'conveniencia_App/assets/bootstrap/css/bootstrap.min.css' %}">
 
     <!-- plugins:css -->
@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="{% static 'conveniencia_App/assets/material-admin/vendors/jvectormap/jquery-jvectormap.css' %}">
     <!-- End plugin css for this page -->
     <!-- Layout styles -->
-    <link rel="stylesheet" href="{% static 'conveniencia_App/assets/material-admin/css/demo/style.css' %}">
+    <link rel="stylesheet" href="{% static 'conveniencia_App/assets/material-admin/css/demo/style.css' %}?v=20260521m">
     <!-- End layout styles -->
     <link rel="shortcut icon" href="{% static 'conveniencia_App/assets/material-admin/images/favicon.png' %}" />
     <script src="{% static 'conveniencia_App/assets/default/js/jquery-3.6.0.min.js' %}"></script>
@@ -32,6 +32,7 @@
 </head>
 
 <body>
+    <div style="position:fixed;top:10px;right:10px;z-index:9999;background:#ff5252;color:#fff;font-weight:700;padding:6px 10px;border-radius:8px;">VERSAO 20260521R</div>
     <script src="{% static 'conveniencia_App/assets/material-admin/js/preloader.js' %}"></script>
     <div class="body-wrapper">
         <div class="main-wrapper">

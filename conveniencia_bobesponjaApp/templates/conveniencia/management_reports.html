@@ -1,0 +1,28 @@
+{% extends "conveniencia/base.html" %}
+{% load humanize %}
+{% block pageContent %}
+<style>
+	.ops-header { background: linear-gradient(130deg, #001219 0%, #005f73 100%); color: #fff; border-left: 4px solid #ee9b00; }
+	.ops-filter { background: #f4fbfd; border: 1px solid #cee5ea; }
+	.report-card { border-top: 3px solid #0a9396; }
+	.report-card h6 { color: #005f73; font-weight: 700; }
+	.ops-table thead th { background: #001219; color: #fff; border-color: #0f2b33; }
+	.ops-table tbody tr:hover { background: #f4fdff; }
+</style>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card py-3 px-3 ops-header"><h4 class="card-title mb-0">Relatórios Gerenciais</h4></div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12"><div class="mdc-card py-3 px-3">
+<form method="get" action="{% url 'management-reports-page' %}" class="row g-2 ops-filter p-2">
+<div class="col-md-3"><label class="form-label">Data Início</label><input type="date" name="data_inicio" class="form-control form-control-sm" value="{{ data_inicio }}"></div>
+<div class="col-md-3"><label class="form-label">Data Fim</label><input type="date" name="data_fim" class="form-control form-control-sm" value="{{ data_fim }}"></div>
+<div class="col-md-6 d-flex align-items-end gap-2"><button class="btn btn-sm btn-primary" type="submit">Gerar</button><a href="{% url 'management-reports-page' %}" class="btn btn-sm btn-secondary">Limpar</a></div>
+</form>
+</div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-6"><div class="mdc-card table-responsive report-card"><h6 class="px-3 pt-3">Top 10 Produtos (quantidade)</h6>
+<table class="table table-sm table-bordered ops-table mb-0"><thead><tr><th>Produto</th><th class="text-center">Qtd</th><th class="text-end">Faturamento</th></tr></thead><tbody>{% for row in top_products %}<tr><td>{{ row.product_id__name }}</td><td class="text-center">{{ row.qty_sum|intcomma }}</td><td class="text-end">R$ {{ row.total_sum|floatformat:2|intcomma }}</td></tr>{% empty %}<tr><td colspan="3" class="text-center py-3">Sem dados.</td></tr>{% endfor %}</tbody></table></div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-6"><div class="mdc-card table-responsive report-card"><h6 class="px-3 pt-3">Horários de Pico</h6>
+<table class="table table-sm table-bordered ops-table mb-0"><thead><tr><th>Faixa</th><th class="text-center">Vendas</th><th class="text-end">Total</th></tr></thead><tbody>{% for row in peak_hours %}<tr><td>{{ row.hour_bucket|date:'d/m/Y H:00' }}</td><td class="text-center">{{ row.sales_count|intcomma }}</td><td class="text-end">R$ {{ row.total_sum|floatformat:2|intcomma }}</td></tr>{% empty %}<tr><td colspan="3" class="text-center py-3">Sem dados.</td></tr>{% endfor %}</tbody></table></div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-6"><div class="mdc-card table-responsive report-card"><h6 class="px-3 pt-3">Top Clientes (faturamento)</h6>
+<table class="table table-sm table-bordered ops-table mb-0"><thead><tr><th>Cliente</th><th class="text-center">Vendas</th><th class="text-end">Total</th></tr></thead><tbody>{% for row in top_customers %}<tr><td>{{ row.customer__name }}</td><td class="text-center">{{ row.sales_count|intcomma }}</td><td class="text-end">R$ {{ row.total_spent|floatformat:2|intcomma }}</td></tr>{% empty %}<tr><td colspan="3" class="text-center py-3">Sem dados.</td></tr>{% endfor %}</tbody></table></div></div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-6"><div class="mdc-card table-responsive report-card"><h6 class="px-3 pt-3">Produtos com Estoque Baixo</h6>
+<table class="table table-sm table-bordered ops-table mb-0"><thead><tr><th>Produto</th><th class="text-center">Qtd Atual</th></tr></thead><tbody>{% for p in low_stock_products %}<tr><td>{{ p.name }}</td><td class="text-center">{{ p.quantity|intcomma }}</td></tr>{% empty %}<tr><td colspan="2" class="text-center py-3">Tudo certo no estoque crítico.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock pageContent %}

@@ -35,7 +35,7 @@
 <body>
     <script src="{% static 'conveniencia_App/assets/material-admin/js/preloader.js' %}"></script>
     <div class="body-wrapper">
-     
+
         {% block navigation %} {% include "conveniencia/navigation.html" %} {% endblock navigation %}
       
         <div class="main-wrapper mdc-drawer-app-content">
@@ -95,7 +95,7 @@
                 <div class="modal-body">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn  btn-sm btn-flat btn-primary rounded-0" id='submit' onclick="$('#uni_modal form').submit()">Salvar</button>
+                    <button type="button" class="btn  btn-sm btn-flat btn-primary rounded-0" id='submit' onclick="(function(){ var $checkout = $('#uni_modal').find('form#checkout-form'); if ($checkout.length) { $checkout.trigger('submit'); return; } var $form = $('#uni_modal').find('form').first(); if ($form.length) { $form.trigger('submit'); } })()">Salvar</button>
                     <button type="button" class="btn btn-sm btn-flat btn-secondary rounded-0" data-bs-dismiss="modal">Cancelar</button>
                 </div>
             </div>
@@ -136,6 +136,17 @@
                     if (resp) {
                         $('#uni_modal .modal-title').html($title)
                         $('#uni_modal .modal-body').html(resp)
+                        $('#uni_modal .modal-body').find('script').each(function() {
+                            var scriptEl = this
+                            if (scriptEl.src) {
+                                $.getScript(scriptEl.src)
+                            } else {
+                                var scriptContent = $(scriptEl).text() || scriptEl.textContent || scriptEl.innerHTML || ''
+                                if (scriptContent) {
+                                    $.globalEval(scriptContent)
+                                }
+                            }
+                        })
                         if ($size != '') {
                             $('#uni_modal .modal-dialog').addClass($size + '  modal-dialog-centered')
                         } else {
@@ -158,7 +169,12 @@
             $('#confirm_modal').modal('show')
         }
         $(function() {
-
+            $(document).on('hide.bs.modal', '.modal', function() {
+                var active = document.activeElement
+                if (active && this.contains(active)) {
+                    active.blur()
+                }
+            })
         })
     </script>
 

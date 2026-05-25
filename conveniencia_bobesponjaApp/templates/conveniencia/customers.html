@@ -1,0 +1,140 @@
+{% extends "conveniencia/base.html" %}
+{% block pageContent %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">Clientes</h4>
+            <div class="text-start">
+                <button class="btn btn-primary bg-gradient btn-sm rounded-0" id="create_new"><i class="mdi mdi-plus"></i><span> Novo Cliente</span></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-3 px-3">
+        <form method="get" action="{% url 'customer-page' %}">
+            <div class="row g-2">
+                <div class="col-md-5">
+                    <label for="search" class="form-label">Buscar</label>
+                    <input type="text" id="search" name="search" class="form-control form-control-sm" value="{{ search_query }}" placeholder="Nome, telefone ou observação">
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select id="status" name="status" class="form-select form-select-sm">
+                        <option value="" {% if not status_filter %}selected{% endif %}>Todos</option>
+                        <option value="1" {% if status_filter == '1' %}selected{% endif %}>Ativos</option>
+                        <option value="0" {% if status_filter == '0' %}selected{% endif %}>Inativos</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-sm btn-primary">Buscar</button>
+                    <a href="{% url 'customer-page' %}" class="btn btn-sm btn-secondary">Limpar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-center py-1">ID</th>
+                        <th class="text-center py-1">Nome</th>
+                        <th class="text-center py-1">Telefone</th>
+                        <th class="text-center py-1">Observações</th>
+                        <th class="text-center py-1">Status</th>
+                        <th class="text-center py-1">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td class="px-2 py-1 text-center">{{ customer.id }}</td>
+                        <td class="px-2 py-1 text-start">{{ customer.name }}</td>
+                        <td class="px-2 py-1 text-start">{{ customer.phone|default:'-' }}</td>
+                        <td class="px-2 py-1 text-start">{{ customer.notes|default:'-' }}</td>
+                        <td class="px-2 py-1 text-center">
+                            {% if customer.active %}
+                            <span class="badge bg-primary rounded-pill px-3">Ativo</span>
+                            {% else %}
+                            <span class="badge bg-secondary rounded-pill px-3">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-2 py-1 text-center">
+                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light mdc-ripple-upgraded edit-data" type="button" data-id="{{ customer.id }}" title="Editar">
+                                <i class="material-icons mdc-button__icon">edit</i>
+                            </button>
+                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--secondary mdc-ripple-upgraded view-comandas" type="button" data-id="{{ customer.id }}" data-name="{{ customer.name }}" title="Ver Comandas">
+                                <i class="material-icons mdc-button__icon">receipt_long</i>
+                            </button>
+                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--danger mdc-ripple-upgraded delete-data" type="button" data-id="{{ customer.id }}" data-name="{{ customer.name }}" title="Excluir">
+                                <i class="material-icons mdc-button__icon">delete_outline</i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-3">Nenhum cliente encontrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock pageContent %}
+
+{% block ScriptBlock %}
+<script>
+    $(function() {
+        $('#create_new').click(function() {
+            uni_modal('Novo Cliente', '{% url "manage_customer-page" %}')
+        })
+
+        $('.edit-data').click(function() {
+            uni_modal('Editar Cliente', '{% url "manage_customer-page" %}?id=' + $(this).attr('data-id'))
+        })
+
+        $('.view-comandas').click(function() {
+            var customerId = $(this).attr('data-id')
+            if (customerId) {
+                window.location.href = '{% url "sales-page" %}?customer_id=' + encodeURIComponent(customerId)
+            }
+        })
+
+        $('.delete-data').click(function() {
+            _conf('Tem certeza de que deseja excluir o cliente <b>' + $(this).attr('data-name') + '</b>?', 'delete_customer', [$(this).attr('data-id')])
+        })
+    })
+
+    function delete_customer($id) {
+        start_loader()
+        $.ajax({
+            headers: {
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            url: '{% url "delete-customer" %}',
+            method: 'POST',
+            data: {
+                id: $id
+            },
+            dataType: 'json',
+            error: err => {
+                console.log(err)
+                end_loader()
+            },
+            success: function(resp) {
+                if (typeof resp === 'object' && resp.status === 'success') {
+                    location.reload()
+                } else {
+                    end_loader()
+                }
+            }
+        })
+    }
+</script>
+{% endblock ScriptBlock %}
