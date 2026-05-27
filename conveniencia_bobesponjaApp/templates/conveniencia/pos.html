@@ -502,6 +502,32 @@
         updateCustomerStatusAlert()
     }
 
+    function reloadOpenComandasList() {
+        // Recarrega a lista de comandas abertas do servidor
+        $.ajax({
+            headers: {
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            url: '{% url "get-open-comandas-json" %}',
+            method: 'GET',
+            dataType: 'json',
+            timeout: 5000,
+            error: function(err) {
+                console.log('Erro ao recarregar lista de comandas:', err)
+            },
+            success: function(resp) {
+                if (resp && Array.isArray(resp.data)) {
+                    open_comandas_json = resp.data
+                    openComandasMap = {}
+                    open_comandas_json.forEach(function(comanda) {
+                        openComandasMap[String(comanda.id)] = comanda
+                    })
+                    renderOpenComandasList()
+                }
+            }
+        })
+    }
+
     function renderOpenComandasList() {
         var container = $('#open-comandas-list')
         var comandas = open_comandas_json.slice().sort(function(left, right) {
@@ -618,13 +644,10 @@
         }
     }
 
-    function loadOpenComanda(comandaId) {
+    function proceedLoadOpenComanda(comandaId) {
         var comanda = openComandasMap[String(comandaId)]
         if (!comanda) {
             showPosMessage('Comanda nao encontrada na lista atual.', 'danger')
-            return false
-        }
-        if ($('#POS-field table tbody tr').length > 0 && confirm('Deseja substituir o carrinho atual pela comanda ' + comanda.comanda_code + ' (ID #' + comanda.id + ')?') !== true) {
             return false
         }
 
@@ -637,24 +660,94 @@
         $('[name="customer_name"]').val(comanda.customer_name || '')
         $('[name="customer_phone"]').val(comanda.customer_phone || '')
 
+        console.log('proceedLoadOpenComanda: carregando comanda ID=' + comanda.id + ' com ' + comanda.items.length + ' items')
+        
         var missingProducts = []
+        var missingDetails = []
+        var missingTotalValue = 0
+        var loadedItemsTotal = 0
+        
         comanda.items.forEach(function(item) {
             var product = prod_arr[String(item.product_id)]
             if (!product) {
                 missingProducts.push(item.product_id)
+                var itemValue = parseFloat(item.price) * parseInt(item.qty)
+                missingTotalValue += itemValue
+                missingDetails.push('ID:' + item.product_id + ' (Qtd:' + item.qty + ' x R$' + parseFloat(item.price).toFixed(2) + ' = R$' + itemValue.toFixed(2) + ')')
+                console.log('Item faltando: product_id=' + item.product_id + ', qty=' + item.qty + ', price=' + item.price + ', total=' + itemValue.toFixed(2))
                 return
             }
-            addProductToOrder(product, item.qty, item.price)
+            var itemValue = parseFloat(item.price) * parseInt(item.qty)
+            loadedItemsTotal += itemValue
+            addProductToOrder(product, item.qty, item.price, true)
         })
 
+        // Se houver items faltando, adiciona um item especial mostrando o valor
+        if (missingProducts.length > 0 && missingTotalValue > 0) {
+            console.log('Adicionando item placeholder para produtos indisponiveis: R$' + missingTotalValue.toFixed(2))
+            var tr = $($('noscript#item-clone').html()).clone()
+            tr.find('[name="qty[]"]').val(1)
+            tr.find('[name="product_id[]"]').val(-999) // ID especial para identificar
+            tr.find('[name="price[]"]').val(missingTotalValue.toFixed(2))
+            tr.find('.product_name').html('<div style="color: #dc3545;"><strong>⚠️ PRODUTOS INDISPONÍVEIS</strong></div><small class="text-muted" style="color: #dc3545;">Deletados ou desativados do sistema</small>')
+            tr.find('.product_total').text(formatBRL(missingTotalValue))
+            tr.find('.product_total').css('color', '#dc3545')
+            
+            // Torna o item readonly
+            tr.find('[name="qty[]"]').attr('readonly', true).attr('disabled', true)
+            tr.find('[name="price[]"]').attr('readonly', true).attr('disabled', true)
+            tr.find('.rem-item').css('opacity', '0.5').attr('disabled', true).css('cursor', 'not-allowed')
+            
+            $('#POS-field table tbody').append(tr)
+        }
+
         updateCurrentSaleLabel()
+        calc()
+        
         if (missingProducts.length > 0) {
-            showPosMessage('Alguns itens da comanda nao estao mais disponiveis: ' + missingProducts.join(', ') + '.', 'warning')
+            var missingMsg = '⚠️ AVISO: ' + missingProducts.length + ' produto(s) foi/foram deletado(s) do sistema!\n\n' + missingDetails.join('\n') + '\n\nValor dos produtos indisponíveis: R$' + missingTotalValue.toFixed(2) + '\nValor dos produtos disponíveis: R$' + loadedItemsTotal.toFixed(2) + '\n\nTotal da comanda: R$' + (loadedItemsTotal + missingTotalValue).toFixed(2)
+            showPosMessage('AVISO: ' + missingProducts.length + ' produto(s) indisponível(is). Verifique console para detalhes.', 'warning')
+            console.warn('Produtos faltando:', missingDetails)
+            console.warn('Valor faltante: R$' + missingTotalValue.toFixed(2))
         } else {
             showPosMessage('Comanda ' + comanda.comanda_code + ' carregada no caixa.', 'success')
         }
         focusBarcodeInput()
         return true
+    }
+
+    function autoSaveCurrentComandaAndSwitch(targetComandaId) {
+        // Verifica se há comanda aberta com itens no carrinho
+        var currentSaleId = String($('[name="sale_id"]').val() || '').trim()
+        var hasCartItems = $('#POS-field table tbody tr').length > 0
+        
+        if (!hasCartItems) {
+            // Se carrinho vazio, só carrega a nova comanda
+            proceedLoadOpenComanda(targetComandaId)
+            return
+        }
+
+        if (!currentSaleId) {
+            // Se não há sale_id mas tem itens, pede confirmação simples
+            var targetComanda = openComandasMap[String(targetComandaId)]
+            if (confirm('Deseja substituir o carrinho atual pela comanda ' + targetComanda.comanda_code + ' (ID #' + targetComanda.id + ')?') !== true) {
+                return false
+            }
+            proceedLoadOpenComanda(targetComandaId)
+            return
+        }
+
+        // Há comanda aberta com itens: pede confirmação antes de trocar
+        var targetComanda = openComandasMap[String(targetComandaId)]
+        var currentCode = String($('[name="comanda_code"]').val() || '').trim()
+        if (confirm('Deseja trocar da comanda ' + currentCode + ' para ' + targetComanda.comanda_code + '?\n\nVocê precisa salvar a comanda ' + currentCode + ' manualmente antes de trocar!') !== true) {
+            return false
+        }
+        proceedLoadOpenComanda(targetComandaId)
+    }
+
+    function loadOpenComanda(comandaId) {
+        autoSaveCurrentComandaAndSwitch(comandaId)
     }
 
     function bindRowEvents(tr, data) {
@@ -727,7 +820,7 @@
         return true
     }
 
-    function addProductToOrder(data, qty, unitPriceOverride) {
+    function addProductToOrder(data, qty, unitPriceOverride, skipStockValidation) {
         if (!data) {
             showPosMessage('Produto nao encontrado para o codigo informado.', 'danger')
             return false
@@ -738,7 +831,7 @@
             qty = 1
         }
 
-        if (!data.infinite_stock && !isNaN(parseFloat(data.quantity)) && parseFloat(data.quantity) <= 0) {
+        if (!skipStockValidation && !data.infinite_stock && !isNaN(parseFloat(data.quantity)) && parseFloat(data.quantity) <= 0) {
             showPosMessage('O produto ' + data.name + ' esta sem estoque.', 'danger')
             return false
         }
@@ -750,7 +843,7 @@
             var currentQty = parseQtyValue(qtyInput.val())
             var newQty = (isNaN(currentQty) ? 0 : currentQty) + qty
 
-            if (!data.infinite_stock && !isNaN(availableQty) && newQty > availableQty) {
+            if (!skipStockValidation && !data.infinite_stock && !isNaN(availableQty) && newQty > availableQty) {
                 showPosMessage('Estoque insuficiente para ' + data.name + '. Disponivel: ' + availableQty + '.', 'danger')
                 return false
             }
@@ -762,7 +855,7 @@
             return true
         }
 
-        if (!data.infinite_stock && !isNaN(availableQty) && qty > availableQty) {
+        if (!skipStockValidation && !data.infinite_stock && !isNaN(availableQty) && qty > availableQty) {
             showPosMessage('Estoque insuficiente para ' + data.name + '. Disponivel: ' + availableQty + '.', 'danger')
             return false
         }

@@ -1570,6 +1570,40 @@ def pos(request):
     return render(request, 'conveniencia/pos.html', context)
 
 @login_required
+def get_open_comandas_json(request):
+    """Retorna JSON das comandas abertas para recarregamento no POS"""
+    open_comandas = []
+    open_sales = Sales.objects.filter(status=Sales.STATUS_OPEN)
+    if not request.user.is_superuser:
+        open_sales = open_sales.filter(user=request.user)
+    open_sales = open_sales.prefetch_related('salesitems_set__product_id').order_by('-date_updated', '-id')
+    
+    for sale in open_sales:
+        sale_items = []
+        for item in sale.salesitems_set.all():
+            sale_items.append({
+                'product_id': item.product_id_id,
+                'qty': int(item.qty),
+                'price': float(item.price),
+            })
+        open_comandas.append({
+            'id': sale.id,
+            'code': sale.code,
+            'comanda_code': sale.comanda_code,
+            'customer_id': sale.customer.id if sale.customer else None,
+            'customer_name': sale.customer.name if sale.customer else '',
+            'customer_phone': sale.customer.phone if sale.customer else '',
+            'sub_total': float(sale.sub_total),
+            'grand_total': float(sale.grand_total),
+            'tendered': float(sale.tendered),
+            'balance_due': max(float(sale.grand_total) - float(sale.tendered), 0),
+            'item_count': len(sale_items),
+            'items': sale_items,
+        })
+    
+    return HttpResponse(json.dumps({'status': 'success', 'data': open_comandas}), content_type='application/json')
+
+@login_required
 def checkout_modal(request):
     grand_total = parse_decimal_value(request.GET.get('grand_total', 0), Decimal('0'))
     comanda_code = ''
@@ -1854,7 +1888,7 @@ def save_pos(request):
                     total_price=item['total']
                 ).save()
 
-                if sale_action == 'checkout' and not item['product'].infinite_stock:
+                if not item['product'].infinite_stock:
                     item['product'].quantity -= item['qty']
                     item['product'].save(update_fields=['quantity', 'date_updated'])
 
