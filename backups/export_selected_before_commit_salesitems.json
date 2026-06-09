@@ -1,0 +1,2792 @@
+[
+  {
+    "salesitem_id": 207,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 6,
+    "price": 4.0,
+    "total_price": 24.0,
+    "sale_id": 164
+  },
+  {
+    "salesitem_id": 208,
+    "product_id": 42,
+    "product_name": "Caixinha de Corona Long Neck - 330ml",
+    "qty": 1,
+    "price": 48.0,
+    "total_price": 48.0,
+    "sale_id": 165
+  },
+  {
+    "salesitem_id": 209,
+    "product_id": 28,
+    "product_name": "Monster - 473ml",
+    "qty": 1,
+    "price": 10.0,
+    "total_price": 10.0,
+    "sale_id": 166
+  },
+  {
+    "salesitem_id": 210,
+    "product_id": 26,
+    "product_name": "Guaraná Antarctica 2L",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 167
+  },
+  {
+    "salesitem_id": 211,
+    "product_id": 53,
+    "product_name": "Heineken Shot - 250ml",
+    "qty": 1,
+    "price": 7.0,
+    "total_price": 7.0,
+    "sale_id": 168
+  },
+  {
+    "salesitem_id": 212,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 168
+  },
+  {
+    "salesitem_id": 213,
+    "product_id": 20,
+    "product_name": "Caixinha de Antarctica 269ml",
+    "qty": 1,
+    "price": 43.0,
+    "total_price": 43.0,
+    "sale_id": 169
+  },
+  {
+    "salesitem_id": 214,
+    "product_id": 55,
+    "product_name": "Coca 2,5L",
+    "qty": 1,
+    "price": 12.0,
+    "total_price": 12.0,
+    "sale_id": 170
+  },
+  {
+    "salesitem_id": 215,
+    "product_id": 26,
+    "product_name": "Guaraná Antarctica 2L",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 171
+  },
+  {
+    "salesitem_id": 216,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 5,
+    "price": 4.0,
+    "total_price": 20.0,
+    "sale_id": 172
+  },
+  {
+    "salesitem_id": 217,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 173
+  },
+  {
+    "salesitem_id": 218,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 174
+  },
+  {
+    "salesitem_id": 219,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 175
+  },
+  {
+    "salesitem_id": 220,
+    "product_id": 32,
+    "product_name": "Brahma Chopp latinha 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 176
+  },
+  {
+    "salesitem_id": 221,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 3,
+    "price": 4.0,
+    "total_price": 12.0,
+    "sale_id": 176
+  },
+  {
+    "salesitem_id": 222,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 177
+  },
+  {
+    "salesitem_id": 223,
+    "product_id": 32,
+    "product_name": "Brahma Chopp latinha 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 177
+  },
+  {
+    "salesitem_id": 224,
+    "product_id": 32,
+    "product_name": "Brahma Chopp latinha 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 178
+  },
+  {
+    "salesitem_id": 225,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 178
+  },
+  {
+    "salesitem_id": 226,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 10,
+    "price": 4.0,
+    "total_price": 40.0,
+    "sale_id": 179
+  },
+  {
+    "salesitem_id": 227,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 180
+  },
+  {
+    "salesitem_id": 228,
+    "product_id": 74,
+    "product_name": "água sem gás 500ml",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 181
+  },
+  {
+    "salesitem_id": 229,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 182
+  },
+  {
+    "salesitem_id": 230,
+    "product_id": 39,
+    "product_name": "Freegells menta",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 183
+  },
+  {
+    "salesitem_id": 231,
+    "product_id": 40,
+    "product_name": "Freegells cereja",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 183
+  },
+  {
+    "salesitem_id": 232,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 2,
+    "price": 15.0,
+    "total_price": 30.0,
+    "sale_id": 183
+  },
+  {
+    "salesitem_id": 233,
+    "product_id": 63,
+    "product_name": "Batatinha Crony original",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 184
+  },
+  {
+    "salesitem_id": 234,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 3,
+    "price": 4.0,
+    "total_price": 12.0,
+    "sale_id": 185
+  },
+  {
+    "salesitem_id": 235,
+    "product_id": 63,
+    "product_name": "Batatinha Crony original",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 185
+  },
+  {
+    "salesitem_id": 236,
+    "product_id": 38,
+    "product_name": "Freegells preto extraforte",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 185
+  },
+  {
+    "salesitem_id": 237,
+    "product_id": 65,
+    "product_name": "Batatinha Crony Cebola e Salsa",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 185
+  },
+  {
+    "salesitem_id": 238,
+    "product_id": 64,
+    "product_name": "Batatinha Crony Churrasco",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 185
+  },
+  {
+    "salesitem_id": 239,
+    "product_id": 77,
+    "product_name": "sminorff ice - 275ml",
+    "qty": 2,
+    "price": 7.0,
+    "total_price": 14.0,
+    "sale_id": 186
+  },
+  {
+    "salesitem_id": 240,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 3,
+    "price": 4.0,
+    "total_price": 12.0,
+    "sale_id": 187
+  },
+  {
+    "salesitem_id": 241,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 187
+  },
+  {
+    "salesitem_id": 242,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 8,
+    "price": 4.0,
+    "total_price": 32.0,
+    "sale_id": 188
+  },
+  {
+    "salesitem_id": 243,
+    "product_id": 6,
+    "product_name": "Coca Cola lata 310ml",
+    "qty": 3,
+    "price": 4.0,
+    "total_price": 12.0,
+    "sale_id": 189
+  },
+  {
+    "salesitem_id": 244,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 5,
+    "price": 4.0,
+    "total_price": 20.0,
+    "sale_id": 190
+  },
+  {
+    "salesitem_id": 245,
+    "product_id": 28,
+    "product_name": "Monster - 473ml",
+    "qty": 2,
+    "price": 10.0,
+    "total_price": 20.0,
+    "sale_id": 190
+  },
+  {
+    "salesitem_id": 246,
+    "product_id": 66,
+    "product_name": "Heineken Lata 269ml",
+    "qty": 3,
+    "price": 5.0,
+    "total_price": 15.0,
+    "sale_id": 190
+  },
+  {
+    "salesitem_id": 247,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 190
+  },
+  {
+    "salesitem_id": 248,
+    "product_id": 25,
+    "product_name": "Fanta Laranja 2L",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 191
+  },
+  {
+    "salesitem_id": 249,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 5,
+    "price": 4.0,
+    "total_price": 20.0,
+    "sale_id": 192
+  },
+  {
+    "salesitem_id": 250,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 4,
+    "price": 4.0,
+    "total_price": 16.0,
+    "sale_id": 192
+  },
+  {
+    "salesitem_id": 251,
+    "product_id": 6,
+    "product_name": "Coca Cola lata 310ml",
+    "qty": 5,
+    "price": 4.0,
+    "total_price": 20.0,
+    "sale_id": 193
+  },
+  {
+    "salesitem_id": 252,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 4,
+    "price": 4.0,
+    "total_price": 16.0,
+    "sale_id": 193
+  },
+  {
+    "salesitem_id": 253,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 3,
+    "price": 4.0,
+    "total_price": 12.0,
+    "sale_id": 194
+  },
+  {
+    "salesitem_id": 254,
+    "product_id": 6,
+    "product_name": "Coca Cola lata 310ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 195
+  },
+  {
+    "salesitem_id": 255,
+    "product_id": 41,
+    "product_name": "Heineken long neck 330ml",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 196
+  },
+  {
+    "salesitem_id": 256,
+    "product_id": 32,
+    "product_name": "Brahma Chopp latinha 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 197
+  },
+  {
+    "salesitem_id": 257,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 198
+  },
+  {
+    "salesitem_id": 258,
+    "product_id": 6,
+    "product_name": "Coca Cola lata 310ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 199
+  },
+  {
+    "salesitem_id": 259,
+    "product_id": 58,
+    "product_name": "Brahma zer0",
+    "qty": 1,
+    "price": 5.0,
+    "total_price": 5.0,
+    "sale_id": 199
+  },
+  {
+    "salesitem_id": 260,
+    "product_id": 41,
+    "product_name": "Heineken long neck 330ml",
+    "qty": 4,
+    "price": 8.0,
+    "total_price": 32.0,
+    "sale_id": 199
+  },
+  {
+    "salesitem_id": 261,
+    "product_id": 93,
+    "product_name": "copitos morango",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 200
+  },
+  {
+    "salesitem_id": 262,
+    "product_id": 94,
+    "product_name": "copitos coco",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 200
+  },
+  {
+    "salesitem_id": 263,
+    "product_id": 88,
+    "product_name": "Picolé de coco",
+    "qty": 1,
+    "price": 3.5,
+    "total_price": 3.5,
+    "sale_id": 200
+  },
+  {
+    "salesitem_id": 264,
+    "product_id": 92,
+    "product_name": "Picolé morango",
+    "qty": 1,
+    "price": 3.5,
+    "total_price": 3.5,
+    "sale_id": 200
+  },
+  {
+    "salesitem_id": 265,
+    "product_id": 28,
+    "product_name": "Monster - 473ml",
+    "qty": 1,
+    "price": 10.0,
+    "total_price": 10.0,
+    "sale_id": 200
+  },
+  {
+    "salesitem_id": 266,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 200
+  },
+  {
+    "salesitem_id": 267,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 201
+  },
+  {
+    "salesitem_id": 268,
+    "product_id": 92,
+    "product_name": "Picolé morango",
+    "qty": 1,
+    "price": 3.5,
+    "total_price": 3.5,
+    "sale_id": 202
+  },
+  {
+    "salesitem_id": 269,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 203
+  },
+  {
+    "salesitem_id": 270,
+    "product_id": 91,
+    "product_name": "Picolé leitinho trufado",
+    "qty": 1,
+    "price": 5.0,
+    "total_price": 5.0,
+    "sale_id": 204
+  },
+  {
+    "salesitem_id": 271,
+    "product_id": 97,
+    "product_name": "copitos leitinho trufado",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 204
+  },
+  {
+    "salesitem_id": 272,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 205
+  },
+  {
+    "salesitem_id": 273,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 206
+  },
+  {
+    "salesitem_id": 274,
+    "product_id": 92,
+    "product_name": "Picolé morango",
+    "qty": 1,
+    "price": 3.5,
+    "total_price": 3.5,
+    "sale_id": 207
+  },
+  {
+    "salesitem_id": 275,
+    "product_id": 85,
+    "product_name": "Picolé skimó",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 208
+  },
+  {
+    "salesitem_id": 276,
+    "product_id": 5,
+    "product_name": "Stella Artois Long Neck 330ml",
+    "qty": 5,
+    "price": 8.0,
+    "total_price": 40.0,
+    "sale_id": 209
+  },
+  {
+    "salesitem_id": 277,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 210
+  },
+  {
+    "salesitem_id": 278,
+    "product_id": 82,
+    "product_name": "Coronita - 210ml",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 211
+  },
+  {
+    "salesitem_id": 279,
+    "product_id": 2,
+    "product_name": "Corona Long Neck 330ml",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 211
+  },
+  {
+    "salesitem_id": 280,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 212
+  },
+  {
+    "salesitem_id": 281,
+    "product_id": 20,
+    "product_name": "Caixinha de Antarctica 269ml",
+    "qty": 2,
+    "price": 43.0,
+    "total_price": 86.0,
+    "sale_id": 213
+  },
+  {
+    "salesitem_id": 282,
+    "product_id": 65,
+    "product_name": "Batatinha Crony Cebola e Salsa",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 213
+  },
+  {
+    "salesitem_id": 283,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 213
+  },
+  {
+    "salesitem_id": 284,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 214
+  },
+  {
+    "salesitem_id": 285,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 215
+  },
+  {
+    "salesitem_id": 286,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 216
+  },
+  {
+    "salesitem_id": 287,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 217
+  },
+  {
+    "salesitem_id": 288,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 4,
+    "price": 5.0,
+    "total_price": 20.0,
+    "sale_id": 218
+  },
+  {
+    "salesitem_id": 289,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 12.0,
+    "total_price": 12.0,
+    "sale_id": 219
+  },
+  {
+    "salesitem_id": 290,
+    "product_id": 49,
+    "product_name": "Baly Tadaly 2L",
+    "qty": 1,
+    "price": 13.0,
+    "total_price": 13.0,
+    "sale_id": 220
+  },
+  {
+    "salesitem_id": 291,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 12.0,
+    "total_price": 12.0,
+    "sale_id": 221
+  },
+  {
+    "salesitem_id": 292,
+    "product_id": 68,
+    "product_name": "Caixinha de Heineken Lata - 269ml",
+    "qty": 1,
+    "price": 33.0,
+    "total_price": 33.0,
+    "sale_id": 222
+  },
+  {
+    "salesitem_id": 293,
+    "product_id": 41,
+    "product_name": "Heineken long neck 330ml",
+    "qty": 2,
+    "price": 9.0,
+    "total_price": 18.0,
+    "sale_id": 223
+  },
+  {
+    "salesitem_id": 294,
+    "product_id": 6,
+    "product_name": "Coca Cola lata 310ml",
+    "qty": 1,
+    "price": 5.0,
+    "total_price": 5.0,
+    "sale_id": 224
+  },
+  {
+    "salesitem_id": 295,
+    "product_id": 76,
+    "product_name": "51 ice limão - 275ml",
+    "qty": 1,
+    "price": 7.0,
+    "total_price": 7.0,
+    "sale_id": 225
+  },
+  {
+    "salesitem_id": 296,
+    "product_id": 41,
+    "product_name": "Heineken long neck 330ml",
+    "qty": 2,
+    "price": 9.0,
+    "total_price": 18.0,
+    "sale_id": 226
+  },
+  {
+    "salesitem_id": 297,
+    "product_id": 28,
+    "product_name": "Monster - 473ml",
+    "qty": 1,
+    "price": 12.0,
+    "total_price": 12.0,
+    "sale_id": 227
+  },
+  {
+    "salesitem_id": 298,
+    "product_id": 53,
+    "product_name": "Heineken Shot - 250ml",
+    "qty": 2,
+    "price": 8.0,
+    "total_price": 16.0,
+    "sale_id": 228
+  },
+  {
+    "salesitem_id": 299,
+    "product_id": 14,
+    "product_name": "Salgadinho Micos de Presunto 41g",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 228
+  },
+  {
+    "salesitem_id": 300,
+    "product_id": 39,
+    "product_name": "Freegells menta",
+    "qty": 1,
+    "price": 2.5,
+    "total_price": 2.5,
+    "sale_id": 228
+  },
+  {
+    "salesitem_id": 301,
+    "product_id": 77,
+    "product_name": "sminorff ice - 275ml",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 229
+  },
+  {
+    "salesitem_id": 302,
+    "product_id": 2,
+    "product_name": "Corona Long Neck 330ml",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 230
+  },
+  {
+    "salesitem_id": 303,
+    "product_id": 42,
+    "product_name": "Caixinha de Corona Long Neck - 330ml",
+    "qty": 1,
+    "price": 48.0,
+    "total_price": 48.0,
+    "sale_id": 231
+  },
+  {
+    "salesitem_id": 304,
+    "product_id": 21,
+    "product_name": "Caixinha Brahma chopp 269ml",
+    "qty": 1,
+    "price": 43.0,
+    "total_price": 43.0,
+    "sale_id": 232
+  },
+  {
+    "salesitem_id": 305,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 232
+  },
+  {
+    "salesitem_id": 306,
+    "product_id": 28,
+    "product_name": "Monster - 473ml",
+    "qty": 1,
+    "price": 10.0,
+    "total_price": 10.0,
+    "sale_id": 233
+  },
+  {
+    "salesitem_id": 307,
+    "product_id": 20,
+    "product_name": "Caixinha de Antarctica 269ml",
+    "qty": 1,
+    "price": 43.0,
+    "total_price": 43.0,
+    "sale_id": 234
+  },
+  {
+    "salesitem_id": 308,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 234
+  },
+  {
+    "salesitem_id": 309,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 235
+  },
+  {
+    "salesitem_id": 310,
+    "product_id": 85,
+    "product_name": "Picolé skimó",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 236
+  },
+  {
+    "salesitem_id": 311,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 237
+  },
+  {
+    "salesitem_id": 312,
+    "product_id": 53,
+    "product_name": "Heineken Shot - 250ml",
+    "qty": 1,
+    "price": 7.0,
+    "total_price": 7.0,
+    "sale_id": 238
+  },
+  {
+    "salesitem_id": 313,
+    "product_id": 18,
+    "product_name": "Mentos 5 unidades 8,5g",
+    "qty": 1,
+    "price": 2.5,
+    "total_price": 2.5,
+    "sale_id": 238
+  },
+  {
+    "salesitem_id": 314,
+    "product_id": 38,
+    "product_name": "Freegells preto extraforte",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 239
+  },
+  {
+    "salesitem_id": 315,
+    "product_id": 18,
+    "product_name": "Mentos 5 unidades 8,5g",
+    "qty": 1,
+    "price": 2.5,
+    "total_price": 2.5,
+    "sale_id": 239
+  },
+  {
+    "salesitem_id": 316,
+    "product_id": 28,
+    "product_name": "Monster - 473ml",
+    "qty": 1,
+    "price": 10.0,
+    "total_price": 10.0,
+    "sale_id": 240
+  },
+  {
+    "salesitem_id": 317,
+    "product_id": 15,
+    "product_name": "Salgadinho Micos de Galinha 41g",
+    "qty": 1,
+    "price": 3.5,
+    "total_price": 3.5,
+    "sale_id": 241
+  },
+  {
+    "salesitem_id": 318,
+    "product_id": 54,
+    "product_name": "Caixinha de heineken shot - 250ml",
+    "qty": 1,
+    "price": 36.0,
+    "total_price": 36.0,
+    "sale_id": 242
+  },
+  {
+    "salesitem_id": 319,
+    "product_id": 79,
+    "product_name": "Amendupã Costelinha Suína",
+    "qty": 2,
+    "price": 2.5,
+    "total_price": 5.0,
+    "sale_id": 243
+  },
+  {
+    "salesitem_id": 320,
+    "product_id": 18,
+    "product_name": "Mentos 5 unidades 8,5g",
+    "qty": 1,
+    "price": 2.5,
+    "total_price": 2.5,
+    "sale_id": 243
+  },
+  {
+    "salesitem_id": 321,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 244
+  },
+  {
+    "salesitem_id": 322,
+    "product_id": 15,
+    "product_name": "Salgadinho Micos de Galinha 41g",
+    "qty": 1,
+    "price": 3.5,
+    "total_price": 3.5,
+    "sale_id": 244
+  },
+  {
+    "salesitem_id": 323,
+    "product_id": 16,
+    "product_name": "Salgadinho Micos de Pizza 41g",
+    "qty": 1,
+    "price": 3.5,
+    "total_price": 3.5,
+    "sale_id": 244
+  },
+  {
+    "salesitem_id": 324,
+    "product_id": 14,
+    "product_name": "Salgadinho Micos de Presunto 41g",
+    "qty": 1,
+    "price": 3.5,
+    "total_price": 3.5,
+    "sale_id": 244
+  },
+  {
+    "salesitem_id": 325,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 245
+  },
+  {
+    "salesitem_id": 326,
+    "product_id": 26,
+    "product_name": "Guaraná Antarctica 2L",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 246
+  },
+  {
+    "salesitem_id": 327,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 4,
+    "price": 4.0,
+    "total_price": 16.0,
+    "sale_id": 247
+  },
+  {
+    "salesitem_id": 328,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 248
+  },
+  {
+    "salesitem_id": 329,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 249
+  },
+  {
+    "salesitem_id": 330,
+    "product_id": 2,
+    "product_name": "Corona Long Neck 330ml",
+    "qty": 2,
+    "price": 9.0,
+    "total_price": 18.0,
+    "sale_id": 250
+  },
+  {
+    "salesitem_id": 331,
+    "product_id": 5,
+    "product_name": "Stella Artois Long Neck 330ml",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 251
+  },
+  {
+    "salesitem_id": 332,
+    "product_id": 104,
+    "product_name": "Passatempo Chocolate ",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 251
+  },
+  {
+    "salesitem_id": 333,
+    "product_id": 7,
+    "product_name": "Biscoito passatempo morango - 130g",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 251
+  },
+  {
+    "salesitem_id": 351,
+    "product_id": 115,
+    "product_name": "Dose de domus",
+    "qty": 3,
+    "price": 4.0,
+    "total_price": 12.0,
+    "sale_id": 252
+  },
+  {
+    "salesitem_id": 352,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 252
+  },
+  {
+    "salesitem_id": 338,
+    "product_id": 84,
+    "product_name": "Cremosinho",
+    "qty": 30,
+    "price": 2.0,
+    "total_price": 60.0,
+    "sale_id": 253
+  },
+  {
+    "salesitem_id": 343,
+    "product_id": 7,
+    "product_name": "Biscoito passatempo morango - 130g",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 254
+  },
+  {
+    "salesitem_id": 347,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 4,
+    "price": 2.0,
+    "total_price": 8.0,
+    "sale_id": 256
+  },
+  {
+    "salesitem_id": 348,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 257
+  },
+  {
+    "salesitem_id": 349,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 258
+  },
+  {
+    "salesitem_id": 350,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 2,
+    "price": 2.0,
+    "total_price": 4.0,
+    "sale_id": 258
+  },
+  {
+    "salesitem_id": 361,
+    "product_id": 91,
+    "product_name": "Picolé leitinho trufado",
+    "qty": 1,
+    "price": 5.0,
+    "total_price": 5.0,
+    "sale_id": 260
+  },
+  {
+    "salesitem_id": 362,
+    "product_id": 7,
+    "product_name": "Biscoito passatempo morango - 130g",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 260
+  },
+  {
+    "salesitem_id": 363,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 260
+  },
+  {
+    "salesitem_id": 370,
+    "product_id": 120,
+    "product_name": "dose São João da Barra",
+    "qty": 3,
+    "price": 2.0,
+    "total_price": 6.0,
+    "sale_id": 261
+  },
+  {
+    "salesitem_id": 371,
+    "product_id": 42,
+    "product_name": "Caixinha de Corona Long Neck - 330ml",
+    "qty": 1,
+    "price": 52.0,
+    "total_price": 52.0,
+    "sale_id": 261
+  },
+  {
+    "salesitem_id": 372,
+    "product_id": 2,
+    "product_name": "Corona Long Neck 330ml",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 261
+  },
+  {
+    "salesitem_id": 367,
+    "product_id": 41,
+    "product_name": "Heineken long neck 330ml",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 263
+  },
+  {
+    "salesitem_id": 375,
+    "product_id": 113,
+    "product_name": "Coca Zero 600ml",
+    "qty": 1,
+    "price": 7.0,
+    "total_price": 7.0,
+    "sale_id": 264
+  },
+  {
+    "salesitem_id": 374,
+    "product_id": 69,
+    "product_name": "água com gás 500ml",
+    "qty": 1,
+    "price": 2.5,
+    "total_price": 2.5,
+    "sale_id": 265
+  },
+  {
+    "salesitem_id": 379,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 3,
+    "price": 4.0,
+    "total_price": 12.0,
+    "sale_id": 269
+  },
+  {
+    "salesitem_id": 380,
+    "product_id": 115,
+    "product_name": "Dose de domus",
+    "qty": 2,
+    "price": 2.0,
+    "total_price": 4.0,
+    "sale_id": 269
+  },
+  {
+    "salesitem_id": 391,
+    "product_id": 125,
+    "product_name": "Traçado",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 271
+  },
+  {
+    "salesitem_id": 384,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 6,
+    "price": 4.0,
+    "total_price": 24.0,
+    "sale_id": 272
+  },
+  {
+    "salesitem_id": 385,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 273
+  },
+  {
+    "salesitem_id": 386,
+    "product_id": 118,
+    "product_name": "Rothmans Picado Vermelho",
+    "qty": 1,
+    "price": 1.0,
+    "total_price": 1.0,
+    "sale_id": 273
+  },
+  {
+    "salesitem_id": 387,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 5,
+    "price": 4.0,
+    "total_price": 20.0,
+    "sale_id": 274
+  },
+  {
+    "salesitem_id": 388,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 274
+  },
+  {
+    "salesitem_id": 389,
+    "product_id": 118,
+    "product_name": "Rothmans Picado Vermelho",
+    "qty": 1,
+    "price": 1.0,
+    "total_price": 1.0,
+    "sale_id": 274
+  },
+  {
+    "salesitem_id": 390,
+    "product_id": 115,
+    "product_name": "Dose de domus",
+    "qty": 1,
+    "price": 3.0,
+    "total_price": 3.0,
+    "sale_id": 274
+  },
+  {
+    "salesitem_id": 392,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 275
+  },
+  {
+    "salesitem_id": 399,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 276
+  },
+  {
+    "salesitem_id": 397,
+    "product_id": 41,
+    "product_name": "Heineken long neck 330ml",
+    "qty": 2,
+    "price": 8.0,
+    "total_price": 16.0,
+    "sale_id": 277
+  },
+  {
+    "salesitem_id": 398,
+    "product_id": 20,
+    "product_name": "Caixinha de Antarctica 269ml",
+    "qty": 1,
+    "price": 43.0,
+    "total_price": 43.0,
+    "sale_id": 277
+  },
+  {
+    "salesitem_id": 808,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 278
+  },
+  {
+    "salesitem_id": 403,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 2,
+    "price": 3.0,
+    "total_price": 6.0,
+    "sale_id": 279
+  },
+  {
+    "salesitem_id": 404,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 279
+  },
+  {
+    "salesitem_id": 405,
+    "product_id": 112,
+    "product_name": "Coca Zero 2L",
+    "qty": 2,
+    "price": 11.0,
+    "total_price": 22.0,
+    "sale_id": 280
+  },
+  {
+    "salesitem_id": 406,
+    "product_id": 26,
+    "product_name": "Guaraná Antarctica 2L",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 280
+  },
+  {
+    "salesitem_id": 407,
+    "product_id": 6,
+    "product_name": "Coca Cola lata 310ml",
+    "qty": 4,
+    "price": 4.0,
+    "total_price": 16.0,
+    "sale_id": 280
+  },
+  {
+    "salesitem_id": 408,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 3,
+    "price": 11.0,
+    "total_price": 33.0,
+    "sale_id": 281
+  },
+  {
+    "salesitem_id": 409,
+    "product_id": 118,
+    "product_name": "Rothmans Picado Vermelho",
+    "qty": 1,
+    "price": 1.0,
+    "total_price": 1.0,
+    "sale_id": 282
+  },
+  {
+    "salesitem_id": 410,
+    "product_id": 101,
+    "product_name": "Opis Napolitano",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 283
+  },
+  {
+    "salesitem_id": 411,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 284
+  },
+  {
+    "salesitem_id": 414,
+    "product_id": 125,
+    "product_name": "Traçado",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 285
+  },
+  {
+    "salesitem_id": 415,
+    "product_id": 119,
+    "product_name": "Rothmans Picado Azul",
+    "qty": 2,
+    "price": 1.0,
+    "total_price": 2.0,
+    "sale_id": 285
+  },
+  {
+    "salesitem_id": 422,
+    "product_id": 32,
+    "product_name": "Brahma Chopp latinha 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 286
+  },
+  {
+    "salesitem_id": 423,
+    "product_id": 126,
+    "product_name": "Copão de Red Label",
+    "qty": 1,
+    "price": 25.0,
+    "total_price": 25.0,
+    "sale_id": 286
+  },
+  {
+    "salesitem_id": 424,
+    "product_id": 120,
+    "product_name": "dose São João da Barra",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 286
+  },
+  {
+    "salesitem_id": 425,
+    "product_id": 2,
+    "product_name": "Corona Long Neck 330ml",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 286
+  },
+  {
+    "salesitem_id": 426,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 286
+  },
+  {
+    "salesitem_id": 430,
+    "product_id": 4,
+    "product_name": "Budweiser Long Neck 330ml",
+    "qty": 1,
+    "price": 6.0,
+    "total_price": 6.0,
+    "sale_id": 288
+  },
+  {
+    "salesitem_id": 431,
+    "product_id": 66,
+    "product_name": "Heineken Lata 269ml",
+    "qty": 2,
+    "price": 5.0,
+    "total_price": 10.0,
+    "sale_id": 288
+  },
+  {
+    "salesitem_id": 432,
+    "product_id": 77,
+    "product_name": "sminorff ice - 275ml",
+    "qty": 3,
+    "price": 7.0,
+    "total_price": 21.0,
+    "sale_id": 288
+  },
+  {
+    "salesitem_id": 438,
+    "product_id": 130,
+    "product_name": "Dose de Vodka",
+    "qty": 1,
+    "price": 5.0,
+    "total_price": 5.0,
+    "sale_id": 289
+  },
+  {
+    "salesitem_id": 439,
+    "product_id": 78,
+    "product_name": "Amendupã Churrasco",
+    "qty": 1,
+    "price": 2.5,
+    "total_price": 2.5,
+    "sale_id": 289
+  },
+  {
+    "salesitem_id": 440,
+    "product_id": 125,
+    "product_name": "Traçado",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 289
+  },
+  {
+    "salesitem_id": 441,
+    "product_id": 130,
+    "product_name": "Dose de Vodka",
+    "qty": 1,
+    "price": 5.0,
+    "total_price": 5.0,
+    "sale_id": 290
+  },
+  {
+    "salesitem_id": 442,
+    "product_id": 119,
+    "product_name": "Rothmans Picado Azul",
+    "qty": 1,
+    "price": 1.0,
+    "total_price": 1.0,
+    "sale_id": 291
+  },
+  {
+    "salesitem_id": 443,
+    "product_id": 6,
+    "product_name": "Coca Cola lata 310ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 292
+  },
+  {
+    "salesitem_id": 444,
+    "product_id": 120,
+    "product_name": "dose São João da Barra",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 292
+  },
+  {
+    "salesitem_id": 445,
+    "product_id": 119,
+    "product_name": "Rothmans Picado Azul",
+    "qty": 2,
+    "price": 1.0,
+    "total_price": 2.0,
+    "sale_id": 292
+  },
+  {
+    "salesitem_id": 446,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 293
+  },
+  {
+    "salesitem_id": 447,
+    "product_id": 21,
+    "product_name": "Caixinha Brahma chopp 269ml",
+    "qty": 1,
+    "price": 44.0,
+    "total_price": 44.0,
+    "sale_id": 294
+  },
+  {
+    "salesitem_id": 448,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 16.0,
+    "total_price": 16.0,
+    "sale_id": 294
+  },
+  {
+    "salesitem_id": 449,
+    "product_id": 21,
+    "product_name": "Caixinha Brahma chopp 269ml",
+    "qty": 1,
+    "price": 44.0,
+    "total_price": 44.0,
+    "sale_id": 295
+  },
+  {
+    "salesitem_id": 450,
+    "product_id": 41,
+    "product_name": "Heineken long neck 330ml",
+    "qty": 2,
+    "price": 9.0,
+    "total_price": 18.0,
+    "sale_id": 296
+  },
+  {
+    "salesitem_id": 451,
+    "product_id": 32,
+    "product_name": "Brahma Chopp latinha 269ml",
+    "qty": 2,
+    "price": 5.0,
+    "total_price": 10.0,
+    "sale_id": 297
+  },
+  {
+    "salesitem_id": 452,
+    "product_id": 32,
+    "product_name": "Brahma Chopp latinha 269ml",
+    "qty": 2,
+    "price": 5.0,
+    "total_price": 10.0,
+    "sale_id": 298
+  },
+  {
+    "salesitem_id": 453,
+    "product_id": 41,
+    "product_name": "Heineken long neck 330ml",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 298
+  },
+  {
+    "salesitem_id": 454,
+    "product_id": 5,
+    "product_name": "Stella Artois Long Neck 330ml",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 298
+  },
+  {
+    "salesitem_id": 455,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 298
+  },
+  {
+    "salesitem_id": 456,
+    "product_id": 47,
+    "product_name": "Dose de Velho Barreiro",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 298
+  },
+  {
+    "salesitem_id": 457,
+    "product_id": 42,
+    "product_name": "Caixinha de Corona Long Neck - 330ml",
+    "qty": 1,
+    "price": 52.0,
+    "total_price": 52.0,
+    "sale_id": 299
+  },
+  {
+    "salesitem_id": 857,
+    "product_id": 118,
+    "product_name": "Rothmans Picado Vermelho",
+    "qty": 25,
+    "price": 1.0,
+    "total_price": 25.0,
+    "sale_id": 301
+  },
+  {
+    "salesitem_id": 858,
+    "product_id": 47,
+    "product_name": "Dose de Velho Barreiro",
+    "qty": 3,
+    "price": 3.0,
+    "total_price": 9.0,
+    "sale_id": 301
+  },
+  {
+    "salesitem_id": 859,
+    "product_id": 113,
+    "product_name": "Coca Zero 600ml",
+    "qty": 1,
+    "price": 7.0,
+    "total_price": 7.0,
+    "sale_id": 301
+  },
+  {
+    "salesitem_id": 860,
+    "product_id": 125,
+    "product_name": "Traçado",
+    "qty": 4,
+    "price": 4.0,
+    "total_price": 16.0,
+    "sale_id": 301
+  },
+  {
+    "salesitem_id": 861,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 1,
+    "price": 3.0,
+    "total_price": 3.0,
+    "sale_id": 301
+  },
+  {
+    "salesitem_id": 862,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 29,
+    "price": 4.0,
+    "total_price": 116.0,
+    "sale_id": 301
+  },
+  {
+    "salesitem_id": 863,
+    "product_id": 115,
+    "product_name": "Dose de domus",
+    "qty": 1,
+    "price": 3.0,
+    "total_price": 3.0,
+    "sale_id": 301
+  },
+  {
+    "salesitem_id": 542,
+    "product_id": 125,
+    "product_name": "Traçado",
+    "qty": 5,
+    "price": 4.0,
+    "total_price": 20.0,
+    "sale_id": 303
+  },
+  {
+    "salesitem_id": 543,
+    "product_id": 119,
+    "product_name": "Rothmans Picado Azul",
+    "qty": 3,
+    "price": 1.0,
+    "total_price": 3.0,
+    "sale_id": 303
+  },
+  {
+    "salesitem_id": 534,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 6,
+    "price": 4.0,
+    "total_price": 24.0,
+    "sale_id": 304
+  },
+  {
+    "salesitem_id": 535,
+    "product_id": 125,
+    "product_name": "Traçado",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 304
+  },
+  {
+    "salesitem_id": 536,
+    "product_id": 20,
+    "product_name": "Caixinha de Antarctica 269ml",
+    "qty": 1,
+    "price": 43.0,
+    "total_price": 43.0,
+    "sale_id": 304
+  },
+  {
+    "salesitem_id": 537,
+    "product_id": 78,
+    "product_name": "Amendupã Churrasco",
+    "qty": 2,
+    "price": 2.5,
+    "total_price": 5.0,
+    "sale_id": 304
+  },
+  {
+    "salesitem_id": 513,
+    "product_id": 120,
+    "product_name": "dose São João da Barra",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 305
+  },
+  {
+    "salesitem_id": 514,
+    "product_id": 86,
+    "product_name": "Picolé de Uva",
+    "qty": 2,
+    "price": 3.5,
+    "total_price": 7.0,
+    "sale_id": 305
+  },
+  {
+    "salesitem_id": 515,
+    "product_id": 88,
+    "product_name": "Picolé de coco",
+    "qty": 2,
+    "price": 3.5,
+    "total_price": 7.0,
+    "sale_id": 305
+  },
+  {
+    "salesitem_id": 516,
+    "product_id": 90,
+    "product_name": "Picolé Limão",
+    "qty": 2,
+    "price": 3.5,
+    "total_price": 7.0,
+    "sale_id": 305
+  },
+  {
+    "salesitem_id": 517,
+    "product_id": 120,
+    "product_name": "dose São João da Barra",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 306
+  },
+  {
+    "salesitem_id": 518,
+    "product_id": 86,
+    "product_name": "Picolé de Uva",
+    "qty": 2,
+    "price": 3.5,
+    "total_price": 7.0,
+    "sale_id": 306
+  },
+  {
+    "salesitem_id": 519,
+    "product_id": 88,
+    "product_name": "Picolé de coco",
+    "qty": 2,
+    "price": 3.5,
+    "total_price": 7.0,
+    "sale_id": 306
+  },
+  {
+    "salesitem_id": 520,
+    "product_id": 90,
+    "product_name": "Picolé Limão",
+    "qty": 2,
+    "price": 3.5,
+    "total_price": 7.0,
+    "sale_id": 306
+  },
+  {
+    "salesitem_id": 521,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 307
+  },
+  {
+    "salesitem_id": 522,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 308
+  },
+  {
+    "salesitem_id": 523,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 309
+  },
+  {
+    "salesitem_id": 524,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 310
+  },
+  {
+    "salesitem_id": 525,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 311
+  },
+  {
+    "salesitem_id": 526,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 312
+  },
+  {
+    "salesitem_id": 531,
+    "product_id": 59,
+    "product_name": "Monster Rio Punch - 473ml",
+    "qty": 1,
+    "price": 10.0,
+    "total_price": 10.0,
+    "sale_id": 313
+  },
+  {
+    "salesitem_id": 532,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 314
+  },
+  {
+    "salesitem_id": 533,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 315
+  },
+  {
+    "salesitem_id": 540,
+    "product_id": 126,
+    "product_name": "Copão de Red Label",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 316
+  },
+  {
+    "salesitem_id": 541,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 316
+  },
+  {
+    "salesitem_id": 544,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 317
+  },
+  {
+    "salesitem_id": 545,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 318
+  },
+  {
+    "salesitem_id": 549,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 320
+  },
+  {
+    "salesitem_id": 550,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 2,
+    "price": 2.0,
+    "total_price": 4.0,
+    "sale_id": 320
+  },
+  {
+    "salesitem_id": 551,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 321
+  },
+  {
+    "salesitem_id": 552,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 2,
+    "price": 2.0,
+    "total_price": 4.0,
+    "sale_id": 321
+  },
+  {
+    "salesitem_id": 553,
+    "product_id": 16,
+    "product_name": "Salgadinho Micos de Pizza 41g",
+    "qty": 1,
+    "price": 3.5,
+    "total_price": 3.5,
+    "sale_id": 322
+  },
+  {
+    "salesitem_id": 554,
+    "product_id": 16,
+    "product_name": "Salgadinho Micos de Pizza 41g",
+    "qty": 1,
+    "price": 3.5,
+    "total_price": 3.5,
+    "sale_id": 323
+  },
+  {
+    "salesitem_id": 555,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 324
+  },
+  {
+    "salesitem_id": 556,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 325
+  },
+  {
+    "salesitem_id": 557,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 326
+  },
+  {
+    "salesitem_id": 558,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 327
+  },
+  {
+    "salesitem_id": 559,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 328
+  },
+  {
+    "salesitem_id": 560,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 329
+  },
+  {
+    "salesitem_id": 561,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 2,
+    "price": 2.0,
+    "total_price": 4.0,
+    "sale_id": 329
+  },
+  {
+    "salesitem_id": 562,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 330
+  },
+  {
+    "salesitem_id": 563,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 2,
+    "price": 2.0,
+    "total_price": 4.0,
+    "sale_id": 330
+  },
+  {
+    "salesitem_id": 564,
+    "product_id": 24,
+    "product_name": "Coca Cola 2 litros",
+    "qty": 1,
+    "price": 11.0,
+    "total_price": 11.0,
+    "sale_id": 331
+  },
+  {
+    "salesitem_id": 565,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 2,
+    "price": 2.0,
+    "total_price": 4.0,
+    "sale_id": 331
+  },
+  {
+    "salesitem_id": 592,
+    "product_id": 74,
+    "product_name": "água sem gás 500ml",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 332
+  },
+  {
+    "salesitem_id": 593,
+    "product_id": 6,
+    "product_name": "Coca Cola lata 310ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 332
+  },
+  {
+    "salesitem_id": 594,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 333
+  },
+  {
+    "salesitem_id": 595,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 334
+  },
+  {
+    "salesitem_id": 648,
+    "product_id": 125,
+    "product_name": "Traçado",
+    "qty": 5,
+    "price": 4.0,
+    "total_price": 20.0,
+    "sale_id": 335
+  },
+  {
+    "salesitem_id": 649,
+    "product_id": 120,
+    "product_name": "dose São João da Barra",
+    "qty": 2,
+    "price": 2.0,
+    "total_price": 4.0,
+    "sale_id": 335
+  },
+  {
+    "salesitem_id": 650,
+    "product_id": 2,
+    "product_name": "Corona Long Neck 330ml",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 335
+  },
+  {
+    "salesitem_id": 651,
+    "product_id": 99,
+    "product_name": "Opis leitinho trufado",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 335
+  },
+  {
+    "salesitem_id": 652,
+    "product_id": 101,
+    "product_name": "Opis Napolitano",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 335
+  },
+  {
+    "salesitem_id": 632,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 5,
+    "price": 4.0,
+    "total_price": 20.0,
+    "sale_id": 336
+  },
+  {
+    "salesitem_id": 633,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 5,
+    "price": 4.0,
+    "total_price": 20.0,
+    "sale_id": 337
+  },
+  {
+    "salesitem_id": 634,
+    "product_id": 118,
+    "product_name": "Rothmans Picado Vermelho",
+    "qty": 3,
+    "price": 1.0,
+    "total_price": 3.0,
+    "sale_id": 338
+  },
+  {
+    "salesitem_id": 635,
+    "product_id": 118,
+    "product_name": "Rothmans Picado Vermelho",
+    "qty": 3,
+    "price": 1.0,
+    "total_price": 3.0,
+    "sale_id": 339
+  },
+  {
+    "salesitem_id": 646,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 3,
+    "price": 4.0,
+    "total_price": 12.0,
+    "sale_id": 340
+  },
+  {
+    "salesitem_id": 647,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 340
+  },
+  {
+    "salesitem_id": 640,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 341
+  },
+  {
+    "salesitem_id": 641,
+    "product_id": 135,
+    "product_name": "Dose de Paratudo",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 341
+  },
+  {
+    "salesitem_id": 642,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 342
+  },
+  {
+    "salesitem_id": 643,
+    "product_id": 135,
+    "product_name": "Dose de Paratudo",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 342
+  },
+  {
+    "salesitem_id": 644,
+    "product_id": 33,
+    "product_name": "Amstel latinha - 269ml",
+    "qty": 2,
+    "price": 4.0,
+    "total_price": 8.0,
+    "sale_id": 343
+  },
+  {
+    "salesitem_id": 645,
+    "product_id": 135,
+    "product_name": "Dose de Paratudo",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 343
+  },
+  {
+    "salesitem_id": 667,
+    "product_id": 130,
+    "product_name": "Dose de Vodka",
+    "qty": 1,
+    "price": 5.0,
+    "total_price": 5.0,
+    "sale_id": 344
+  },
+  {
+    "salesitem_id": 668,
+    "product_id": 130,
+    "product_name": "Dose de Vodka",
+    "qty": 1,
+    "price": 5.0,
+    "total_price": 5.0,
+    "sale_id": 345
+  },
+  {
+    "salesitem_id": 669,
+    "product_id": 25,
+    "product_name": "Fanta Laranja 2L",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 346
+  },
+  {
+    "salesitem_id": 670,
+    "product_id": 25,
+    "product_name": "Fanta Laranja 2L",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 347
+  },
+  {
+    "salesitem_id": 671,
+    "product_id": 25,
+    "product_name": "Fanta Laranja 2L",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 348
+  },
+  {
+    "salesitem_id": 672,
+    "product_id": 25,
+    "product_name": "Fanta Laranja 2L",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 349
+  },
+  {
+    "salesitem_id": 797,
+    "product_id": 128,
+    "product_name": "Copão de Vodka",
+    "qty": 2,
+    "price": 15.0,
+    "total_price": 30.0,
+    "sale_id": 351
+  },
+  {
+    "salesitem_id": 798,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 5,
+    "price": 2.0,
+    "total_price": 10.0,
+    "sale_id": 351
+  },
+  {
+    "salesitem_id": 799,
+    "product_id": 30,
+    "product_name": "Red Bull - 250ml",
+    "qty": 1,
+    "price": 10.0,
+    "total_price": 10.0,
+    "sale_id": 351
+  },
+  {
+    "salesitem_id": 800,
+    "product_id": 80,
+    "product_name": "Amendupã Cebola",
+    "qty": 1,
+    "price": 2.5,
+    "total_price": 2.5,
+    "sale_id": 351
+  },
+  {
+    "salesitem_id": 781,
+    "product_id": 2,
+    "product_name": "Corona Long Neck 330ml",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 352
+  },
+  {
+    "salesitem_id": 782,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 352
+  },
+  {
+    "salesitem_id": 783,
+    "product_id": 2,
+    "product_name": "Corona Long Neck 330ml",
+    "qty": 1,
+    "price": 9.0,
+    "total_price": 9.0,
+    "sale_id": 353
+  },
+  {
+    "salesitem_id": 784,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 353
+  },
+  {
+    "salesitem_id": 785,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 354
+  },
+  {
+    "salesitem_id": 786,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 355
+  },
+  {
+    "salesitem_id": 787,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 356
+  },
+  {
+    "salesitem_id": 788,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 357
+  },
+  {
+    "salesitem_id": 809,
+    "product_id": 67,
+    "product_name": "carteira de tabaco Selva",
+    "qty": 1,
+    "price": 15.0,
+    "total_price": 15.0,
+    "sale_id": 359
+  },
+  {
+    "salesitem_id": 810,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 359
+  },
+  {
+    "salesitem_id": 813,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 3,
+    "price": 2.0,
+    "total_price": 6.0,
+    "sale_id": 361
+  },
+  {
+    "salesitem_id": 814,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 3,
+    "price": 2.0,
+    "total_price": 6.0,
+    "sale_id": 362
+  },
+  {
+    "salesitem_id": 815,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 3,
+    "price": 2.0,
+    "total_price": 6.0,
+    "sale_id": 363
+  },
+  {
+    "salesitem_id": 816,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 5,
+    "price": 4.0,
+    "total_price": 20.0,
+    "sale_id": 364
+  },
+  {
+    "salesitem_id": 818,
+    "product_id": 125,
+    "product_name": "Traçado",
+    "qty": 1,
+    "price": 8.0,
+    "total_price": 8.0,
+    "sale_id": 365
+  },
+  {
+    "salesitem_id": 819,
+    "product_id": 120,
+    "product_name": "dose São João da Barra",
+    "qty": 1,
+    "price": 2.0,
+    "total_price": 2.0,
+    "sale_id": 365
+  },
+  {
+    "salesitem_id": 820,
+    "product_id": 126,
+    "product_name": "Copão de Red Label",
+    "qty": 1,
+    "price": 25.0,
+    "total_price": 25.0,
+    "sale_id": 366
+  },
+  {
+    "salesitem_id": 821,
+    "product_id": 126,
+    "product_name": "Copão de Red Label",
+    "qty": 1,
+    "price": 25.0,
+    "total_price": 25.0,
+    "sale_id": 367
+  },
+  {
+    "salesitem_id": 822,
+    "product_id": 126,
+    "product_name": "Copão de Red Label",
+    "qty": 1,
+    "price": 25.0,
+    "total_price": 25.0,
+    "sale_id": 368
+  },
+  {
+    "salesitem_id": 823,
+    "product_id": 126,
+    "product_name": "Copão de Red Label",
+    "qty": 1,
+    "price": 25.0,
+    "total_price": 25.0,
+    "sale_id": 369
+  },
+  {
+    "salesitem_id": 824,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 3,
+    "price": 2.0,
+    "total_price": 6.0,
+    "sale_id": 370
+  },
+  {
+    "salesitem_id": 825,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 3,
+    "price": 2.0,
+    "total_price": 6.0,
+    "sale_id": 371
+  },
+  {
+    "salesitem_id": 826,
+    "product_id": 117,
+    "product_name": "Tabaco picado",
+    "qty": 3,
+    "price": 2.0,
+    "total_price": 6.0,
+    "sale_id": 372
+  },
+  {
+    "salesitem_id": 842,
+    "product_id": 34,
+    "product_name": "Antarctica latinha - 269ml",
+    "qty": 4,
+    "price": 4.0,
+    "total_price": 16.0,
+    "sale_id": 373
+  },
+  {
+    "salesitem_id": 843,
+    "product_id": 119,
+    "product_name": "Rothmans Picado Azul",
+    "qty": 4,
+    "price": 1.0,
+    "total_price": 4.0,
+    "sale_id": 373
+  },
+  {
+    "salesitem_id": 844,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 1,
+    "price": 3.0,
+    "total_price": 3.0,
+    "sale_id": 373
+  },
+  {
+    "salesitem_id": 847,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 374
+  },
+  {
+    "salesitem_id": 848,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 375
+  },
+  {
+    "salesitem_id": 849,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 376
+  },
+  {
+    "salesitem_id": 850,
+    "product_id": 116,
+    "product_name": "Dose de Alambique",
+    "qty": 1,
+    "price": 4.0,
+    "total_price": 4.0,
+    "sale_id": 377
+  }
+]

@@ -1691,6 +1691,21 @@ def save_pos(request):
             if not comanda_code:
                 comanda_code = existing_sale.comanda_code
 
+        # Se não foi enviado sale_id mas foi informado comanda_code, tentar recuperar a comanda aberta correspondente
+        # Isso protege contra casos em que o frontend perdeu o campo sale_id e evita criar vendas duplicadas.
+        if not sale_id_value and comanda_code:
+            possible = None
+            try:
+                possible_qs = Sales.objects.filter(comanda_code=str(comanda_code)).filter(status=Sales.STATUS_OPEN)
+                if not request.user.is_superuser:
+                    possible_qs = possible_qs.filter(user=request.user)
+                possible = possible_qs.order_by('-date_added').first()
+            except Exception:
+                possible = None
+            if possible:
+                existing_sale = possible
+                code = existing_sale.code
+
         customer = None
         if customer_id_value:
             if not customer_id_value.isnumeric():
@@ -1758,9 +1773,21 @@ def save_pos(request):
                 if not request.user.is_superuser and existing_sale.user_id != request.user.id:
                     raise ValueError('Voce nao tem permissao para editar esta comanda.')
                 previous_tendered = Decimal(str(existing_sale.tendered))
+                # Build map of previously reserved quantities for this sale to allow idempotent adjustments
+                prev_items_q = {}
+                prev_items_list = list(existing_sale.salesitems_set.all())
+                for pi in prev_items_list:
+                    pid = int(getattr(pi.product_id, 'id', getattr(pi, 'product_id_id', None) or 0))
+                    prev_items_q[pid] = prev_items_q.get(pid, 0) + int(getattr(pi, 'qty', 0))
+                try:
+                    logger.info('save_pos prev_items_q=%s for existing_sale_id=%s', prev_items_q, existing_sale.id)
+                except Exception:
+                    pass
             else:
                 previous_tendered = Decimal('0')
+                prev_items_q = {}
 
+            # Validate requested items against available stock considering previous reservations
             for index, product_id in enumerate(product_ids):
                 product = Products.objects.select_for_update().filter(id=product_id, status=1).first()
                 if not product:
@@ -1786,9 +1813,12 @@ def save_pos(request):
                     raise ValueError(f'O produto {product.name} nao permite quantidade fracionada.')
 
                 qty_int = int(qty_decimal)
+                # available stock = current product.quantity + previously reserved qty in this sale
+                prev_reserved = prev_items_q.get(int(product.id), 0)
                 if not product.infinite_stock:
-                    if product.quantity < qty_int:
-                        raise ValueError(f'Estoque insuficiente para o produto {product.name}. Disponivel: {product.quantity}.')
+                    available_qty = int(product.quantity) + int(prev_reserved)
+                    if available_qty < qty_int:
+                        raise ValueError(f'Estoque insuficiente para o produto {product.name}. Disponivel: {available_qty}.')
 
                 active_price = Decimal(str(get_product_active_price(product)))
                 if submitted_price <= 0:
@@ -1849,6 +1879,47 @@ def save_pos(request):
                                 sale.status)
                 except Exception:
                     logger.exception('Failed to log sale after update')
+
+                # Ajuste de estoque por delta entre nova solicitação e itens previamente reservados
+                # Construir mapa de novas quantidades por produto
+                new_items_q = {}
+                for it in sale_items_payload:
+                    pid = int(getattr(it['product'], 'id', getattr(it['product'], 'pk', 0)))
+                    new_items_q[pid] = new_items_q.get(pid, 0) + int(it['qty'])
+                try:
+                    logger.info('save_pos new_items_q=%s for sale_payload_count=%s', new_items_q, len(sale_items_payload))
+                except Exception:
+                    pass
+
+                # Aplicar deltas (novo - anterior) sobre o estoque atual com locks
+                all_pids = set(list(prev_items_q.keys()) + list(new_items_q.keys()))
+                for pid in all_pids:
+                    prev_q = int(prev_items_q.get(pid, 0))
+                    new_q = int(new_items_q.get(pid, 0))
+                    delta = new_q - prev_q
+                    try:
+                        logger.info('save_pos computing delta for pid=%s prev_q=%s new_q=%s delta=%s', pid, prev_q, new_q, delta)
+                    except Exception:
+                        pass
+                    if delta == 0:
+                        continue
+                    prod = Products.objects.select_for_update().filter(id=pid).first()
+                    if not prod:
+                        # Produto removido do cadastro entre a validacao e o commit
+                        raise ValueError('Produto referenciado nao existe mais: id=' + str(pid))
+                    if not prod.infinite_stock:
+                        before_qty = int(prod.quantity)
+                        # delta > 0 reduz estoque, delta < 0 aumenta estoque
+                        prod.quantity = int(prod.quantity) - int(delta)
+                        if prod.quantity < 0:
+                            prod.quantity = 0
+                        prod.save(update_fields=['quantity', 'date_updated'])
+                        try:
+                            logger.info('save_pos adjusted product id=%s before=%s after=%s applied_delta=%s', pid, before_qty, prod.quantity, delta)
+                        except Exception:
+                            pass
+
+                # Remover items antigos e gravar os novos
                 sale.salesitems_set.all().delete()
             else:
                 sale = Sales(
@@ -1879,18 +1950,39 @@ def save_pos(request):
                     logger.exception('Failed to log sale after create')
             sale_id = sale.pk
 
+            # Create new sale items and decrement stock accordingly (only for new sale)
+            try:
+                logger.info('save_pos creating sale items loop for sale_id=%s existing_sale=%s items=%s', sale.id, bool(existing_sale), len(sale_items_payload))
+            except Exception:
+                pass
             for item in sale_items_payload:
-                Salesitems(
+                si = Salesitems(
                     sale_id=sale,
                     product_id=item['product'],
                     qty=item['qty'],
                     price=item['price'],
                     total_price=item['total']
-                ).save()
+                )
+                si.save()
+                try:
+                    logger.info('save_pos created Salesitems id=%s sale_id=%s product_id=%s qty=%s', si.id, sale.id, getattr(item['product'], 'id', getattr(item['product'], 'pk', None)), item['qty'])
+                except Exception:
+                    pass
 
                 if not item['product'].infinite_stock:
-                    item['product'].quantity -= item['qty']
-                    item['product'].save(update_fields=['quantity', 'date_updated'])
+                    # Se estamos atualizando uma comanda existente, o ajuste de estoque
+                    # já foi feito pela lógica de delta acima; evitar decrementar novamente.
+                    if not existing_sale:
+                        # decrement stock by the requested quantity for new sale
+                        item['product'].quantity = int(item['product'].quantity) - int(item['qty'])
+                        if item['product'].quantity < 0:
+                            item['product'].quantity = 0
+                        item['product'].save(update_fields=['quantity', 'date_updated'])
+                    else:
+                        try:
+                            logger.info('save_pos skipped per-item decrement because update already applied deltas for sale_id=%s product_id=%s', sale.id, getattr(item['product'], 'id', getattr(item['product'], 'pk', None)))
+                        except Exception:
+                            pass
 
         # Log final mapping of sale -> customer before responding
         try:

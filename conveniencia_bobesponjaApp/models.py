@@ -10,6 +10,7 @@ class Categorys(models.Model):
     status= models.IntegerField(default=1)
     date_added = models.DateTimeField(default=timezone.now)
     date_updated = models.DateTimeField(auto_now=True)
+    
 
 
     def __str__(self):
@@ -178,3 +179,4 @@ class FinanceReminders(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
     date_added = models.DateTimeField(default=timezone.now)
     date_updated = models.DateTimeField(auto_now=True)
+    
