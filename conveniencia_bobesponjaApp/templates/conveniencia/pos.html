@@ -135,7 +135,6 @@
                                     <input type="hidden" name="customer_name" value="">
                                     <input type="hidden" name="customer_phone" value="">
                                     <input type="hidden" name="comanda_code" value="">
-                                    <input type="hidden" name="idempotency_key" value="">
                                     <input type="hidden" name="discount_type" value="VALUE">
                                     <input type="hidden" name="discount_value" value="0">
                                     <span class="h3 fw-bold" id="grand_total">0.00</span>
@@ -718,8 +717,32 @@
     }
 
     function autoSaveCurrentComandaAndSwitch(targetComandaId) {
-        // Troca direta de comanda: carregar a comanda alvo imediatamente (sem pedir confirmação)
-        // Caso haja itens no carrinho, eles serão substituídos pela comanda selecionada.
+        // Verifica se há comanda aberta com itens no carrinho
+        var currentSaleId = String($('[name="sale_id"]').val() || '').trim()
+        var hasCartItems = $('#POS-field table tbody tr').length > 0
+        
+        if (!hasCartItems) {
+            // Se carrinho vazio, só carrega a nova comanda
+            proceedLoadOpenComanda(targetComandaId)
+            return
+        }
+
+        if (!currentSaleId) {
+            // Se não há sale_id mas tem itens, pede confirmação simples
+            var targetComanda = openComandasMap[String(targetComandaId)]
+            if (confirm('Deseja substituir o carrinho atual pela comanda ' + targetComanda.comanda_code + ' (ID #' + targetComanda.id + ')?') !== true) {
+                return false
+            }
+            proceedLoadOpenComanda(targetComandaId)
+            return
+        }
+
+        // Há comanda aberta com itens: pede confirmação antes de trocar
+        var targetComanda = openComandasMap[String(targetComandaId)]
+        var currentCode = String($('[name="comanda_code"]').val() || '').trim()
+        if (confirm('Deseja trocar da comanda ' + currentCode + ' para ' + targetComanda.comanda_code + '?\n\nVocê precisa salvar a comanda ' + currentCode + ' manualmente antes de trocar!') !== true) {
+            return false
+        }
         proceedLoadOpenComanda(targetComandaId)
     }
 
@@ -1082,11 +1105,7 @@
             cancelSale()
         })
         $('#new_sale').click(function() {
-            // Iniciar nova venda sem excluir a comanda atual: apenas limpar o carrinho e resetar o contexto
-            clearCartContents()
-            resetSaleContext()
-            showPosMessage('Iniciada nova venda sem excluir a comanda aberta.', 'info')
-            focusBarcodeInput()
+            cancelSale()
         })
         $('#add_item').click(function() {
             addProductFromSelect()
@@ -1239,19 +1258,6 @@
             // Debug: log customer fields and full FormData before submitting
             try {
                 console.log('POS submit - customer_id=', $('[name="customer_id"]').val(), 'customer_name=', $('[name="customer_name"]').val(), 'customer_phone=', $('[name="customer_phone"]').val())
-                // Gera uma chave idempotente no frontend se ainda não existir
-                try {
-                    if (!window._posIdempotencyKey) {
-                        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
-                            window._posIdempotencyKey = window.crypto.randomUUID()
-                        } else {
-                            window._posIdempotencyKey = 'pk-' + Date.now() + '-' + Math.floor(Math.random()*1000000)
-                        }
-                    }
-                    $('[name="idempotency_key"]').val(window._posIdempotencyKey)
-                } catch (e) {
-                    console.warn('Failed to generate idempotency key', e)
-                }
                 var fd = new FormData($(this)[0]);
                 for (var pair of fd.entries()) {
                     console.log('FormData:', pair[0], '=', pair[1])
@@ -1259,14 +1265,6 @@
             } catch (e) {
                 console.log('Debug FormData failed', e)
             }
-            // Previne submissões duplicadas: se já estivermos enviando, ignora
-            if (window._posSubmitting) {
-                console.warn('Duplicate POS submit blocked')
-                return false
-            }
-            window._posSubmitting = true
-            $('#check_out, #save-comanda-submit, #save_comanda').prop('disabled', true)
-
             var saleAction = String($('[name="sale_action"]').val() || '').trim().toLowerCase()
             var customerId = String($('[name="customer_id"]').val() || '').trim()
             var customerName = String($('[name="customer_name"]').val() || '').trim()
@@ -1294,9 +1292,6 @@
                 dataType: 'json',
                 error: function(err) {
                     console.log(err)
-                    // Limpa flag e reabilita botões ao final
-                    window._posSubmitting = false
-                    $('#check_out, #save-comanda-submit, #save_comanda').prop('disabled', false)
                     end_loader()
                 },
                 success: function(resp) {
@@ -1333,9 +1328,6 @@
                     _this.prepend(el)
                     el.show('slow')
                     $('html, body, .modal').scrollTop(0)
-                    // Limpa flag e reabilita botões
-                    window._posSubmitting = false
-                    $('#check_out, #save-comanda-submit, #save_comanda').prop('disabled', false)
                     end_loader()
                 }
             })

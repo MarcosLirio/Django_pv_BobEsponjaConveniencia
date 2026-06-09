@@ -1630,6 +1630,7 @@ def checkout_modal(request):
     return render(request, 'conveniencia/checkout.html',context)
 
 @login_required
+@login_required
 def save_pos(request):
     resp = {'status':'failed','msg':''}
     data = request.POST
@@ -1637,28 +1638,22 @@ def save_pos(request):
     comanda_code = str(data.get('comanda_code', '')).strip().upper()
     customer_id_value = str(data.get('customer_id', '')).strip()
     customer_name = normalize_customer_name(data.get('customer_name', ''))
-    print(f"[SAVE_POS] action={sale_action} comanda={comanda_code} customer_id={customer_id_value} customer_name={customer_name}")
-    # Log incoming POS save attempts for debugging customer association
+    
     try:
         _preview = {k: data.get(k) for k in ['sale_action', 'sale_id', 'comanda_code', 'customer_id', 'customer_name', 'customer_phone']}
         logger.info('save_pos called by %s payload_preview=%s', request.user.username if request.user else None, _preview)
     except Exception:
         logger.exception('Failed to log save_pos payload preview')
-    try:
-        full_payload = {}
-        for k in data.keys():
-            full_payload[k] = data.getlist(k)
-        logger.info('save_pos full_payload=%s', json.dumps(full_payload, default=str, ensure_ascii=False))
-    except Exception:
-        logger.exception('Failed to log full save_pos payload')
+        
     if sale_action not in {'checkout', 'open_comanda'}:
         sale_action = 'checkout'
+    
     sale_id_value = str(data.get('sale_id', '')).strip()
     customer_phone = str(data.get('customer_phone', '')).strip()
+    
     pref = datetime.now().year + datetime.now().year
     i = 1
     existing_sale = None
-
     while True:
         code = '{:0>5}'.format(i)
         i += int(1)
@@ -1666,17 +1661,16 @@ def save_pos(request):
         if len(check) <= 0:
             break
     code = str(pref) + str(code)
-
+    
     try:
         product_ids = data.getlist('product_id[]')
         quantities = data.getlist('qty[]')
         prices = data.getlist('price[]')
-        sale_items_payload = []
         computed_sub_total = Decimal('0')
-
+        
         if not product_ids:
             raise ValueError('Adicione pelo menos um item antes de finalizar a venda.')
-
+            
         if sale_id_value:
             if not sale_id_value.isnumeric():
                 raise ValueError('Identificador da comanda invalido.')
@@ -1690,53 +1684,25 @@ def save_pos(request):
             code = existing_sale.code
             if not comanda_code:
                 comanda_code = existing_sale.comanda_code
-
-        # Se não foi enviado sale_id mas foi informado comanda_code, tentar recuperar a comanda aberta correspondente
-        # Isso protege contra casos em que o frontend perdeu o campo sale_id e evita criar vendas duplicadas.
-        if not sale_id_value and comanda_code:
-            possible = None
-            try:
-                possible_qs = Sales.objects.filter(comanda_code=str(comanda_code)).filter(status=Sales.STATUS_OPEN)
-                if not request.user.is_superuser:
-                    possible_qs = possible_qs.filter(user=request.user)
-                possible = possible_qs.order_by('-date_added').first()
-            except Exception:
-                possible = None
-            if possible:
-                existing_sale = possible
-                code = existing_sale.code
-
+                
         customer = None
         if customer_id_value:
             if not customer_id_value.isnumeric():
                 raise ValueError('ID do cliente invalido.')
             customer = Customers.objects.filter(id=int(customer_id_value)).first()
             if not customer:
-                raise ValueError('Cliente nao encontrado. Verifique se o cliente foi selecionado corretamente.')
-            print(f"[SAVE_POS] Customer found by ID: {customer.id} - {customer.name}")
+                raise ValueError('Cliente nao encontrado.')
         if not customer and customer_name:
-            print(f"[SAVE_POS] Resolving customer by name: '{customer_name}'")
             customer = resolve_customer_from_payload(customer_name, customer_phone)
-            if customer:
-                print(f"[SAVE_POS] Customer resolved: {customer.id} - {customer.name}")
         if not customer and existing_sale:
             customer = existing_sale.customer
-
-        print(f"[SAVE_POS] Final customer check: sale_action={sale_action} customer={customer} (id={customer.id if customer else None})")
-
-        try:
-            logger.info('Resolved customer for save_pos customer_id=%s customer_name=%s customer_phone=%s resolved_customer_id=%s',
-                        customer_id_value, customer_name, customer_phone, getattr(customer, 'id', None))
-        except Exception:
-            logger.exception('Failed to log resolved customer in save_pos')
-
+            
         if sale_action == 'open_comanda':
             if not comanda_code:
                 comanda_code = generate_comanda_code(customer)
             if len(comanda_code) > 80:
                 raise ValueError('O campo da comanda deve ter no máximo 80 caracteres.')
-            # Não bloqueia mais comandas abertas com mesmo nome/número
-
+                
         raw_payment_methods = data.get('payment_methods', '')
         requested_payment_methods = [m.strip().lower() for m in str(raw_payment_methods).split(',') if m.strip()]
         payment_other_detail = str(data.get('payment_other_detail', '')).strip()
@@ -1744,274 +1710,120 @@ def save_pos(request):
         tendered_amount = parse_decimal_value(data.get('tendered_amount', 0), Decimal('0'))
         amount_change = Decimal('0')
         discount_type = str(data.get('discount_type', Sales.DISCOUNT_TYPE_VALUE)).strip().upper()
-        if discount_type not in {Sales.DISCOUNT_TYPE_VALUE, Sales.DISCOUNT_TYPE_PERCENT}:
-            discount_type = Sales.DISCOUNT_TYPE_VALUE
+        
         discount_value = parse_decimal_value(data.get('discount_value', 0), Decimal('0'))
         discount_amount = Decimal('0')
-
+        
         if not requested_payment_methods and sale_action == 'checkout':
             requested_payment_methods = ['dinheiro']
-
         main_payment_methods = {'credito', 'debito', 'pix', 'dinheiro'}
         allowed_payment_methods = main_payment_methods.union({'outro'})
-        invalid_methods = [m for m in requested_payment_methods if m not in allowed_payment_methods]
-        if invalid_methods:
-            raise ValueError('Forma de pagamento invalida informada.')
-
-        if 'outro' not in requested_payment_methods:
-            payment_other_detail = ''
-        if len(payment_other_detail) > 120:
-            raise ValueError('O campo Outro deve ter no maximo 120 caracteres.')
-
+        
         payment_methods_value = ','.join(method.upper() for method in requested_payment_methods)
-
+        
         with transaction.atomic():
             if existing_sale:
-                existing_sale = Sales.objects.select_for_update().filter(id=existing_sale.id).first()
-                if not existing_sale or existing_sale.status != Sales.STATUS_OPEN:
-                    raise ValueError('A comanda selecionada nao esta mais aberta.')
-                if not request.user.is_superuser and existing_sale.user_id != request.user.id:
-                    raise ValueError('Voce nao tem permissao para editar esta comanda.')
-                previous_tendered = Decimal(str(existing_sale.tendered))
-                # Build map of previously reserved quantities for this sale to allow idempotent adjustments
-                prev_items_q = {}
-                prev_items_list = list(existing_sale.salesitems_set.all())
-                for pi in prev_items_list:
-                    pid = int(getattr(pi.product_id, 'id', getattr(pi, 'product_id_id', None) or 0))
-                    prev_items_q[pid] = prev_items_q.get(pid, 0) + int(getattr(pi, 'qty', 0))
-                try:
-                    logger.info('save_pos prev_items_q=%s for existing_sale_id=%s', prev_items_q, existing_sale.id)
-                except Exception:
-                    pass
+                sale = existing_sale
             else:
-                previous_tendered = Decimal('0')
-                prev_items_q = {}
+                sale = Sales(user=request.user, code=code)
+            
+            sale.customer = customer
+            sale.comanda_code = comanda_code
+            sale.discount_type = discount_type
+            sale.discount_value = float(discount_value)
+            sale.payment_other_detail = payment_other_detail
+            sale.status = Sales.STATUS_OPEN if sale_action == 'open_comanda' else Sales.STATUS_CLOSED
+            sale.save()
 
-            # Validate requested items against available stock considering previous reservations
+            itens_enviados_ids = []
+            
             for index, product_id in enumerate(product_ids):
                 product = Products.objects.select_for_update().filter(id=product_id, status=1).first()
                 if not product:
-                    raise ValueError('Um dos produtos informados nao esta mais disponivel para venda.')
-
-                try:
-                    qty_raw = str(quantities[index]).strip()
-                    qty_decimal = Decimal(qty_raw)
-                except (TypeError, ValueError, IndexError):
-                    raise ValueError('Foi encontrado um item com quantidade ou preco invalido.')
-                except InvalidOperation:
-                    raise ValueError('Foi encontrado um item com quantidade ou preco invalido.')
-
-                try:
-                    submitted_price = Decimal(str(prices[index]))
-                except (TypeError, ValueError, IndexError, InvalidOperation):
-                    raise ValueError('Foi encontrado um item com quantidade ou preco invalido.')
-
-                if qty_decimal <= 0:
-                    raise ValueError(f'Quantidade invalida para o produto {product.name}.')
-
-                if qty_decimal != qty_decimal.to_integral_value():
-                    raise ValueError(f'O produto {product.name} nao permite quantidade fracionada.')
-
-                qty_int = int(qty_decimal)
-                # available stock = current product.quantity + previously reserved qty in this sale
-                prev_reserved = prev_items_q.get(int(product.id), 0)
-                if not product.infinite_stock:
-                    available_qty = int(product.quantity) + int(prev_reserved)
-                    if available_qty < qty_int:
-                        raise ValueError(f'Estoque insuficiente para o produto {product.name}. Disponivel: {available_qty}.')
-
-                active_price = Decimal(str(get_product_active_price(product)))
-                if submitted_price <= 0:
-                    raise ValueError(f'Preco invalido para o produto {product.name}.')
-
-                price = float(submitted_price)
-                total = Decimal(str(price)) * Decimal(qty_int)
-                computed_sub_total += total
-                sale_items_payload.append({
-                    'product': product,
-                    'qty': qty_int,
-                    'price': price,
-                    'total': float(total),
-                })
-
-            if sale_action == 'checkout':
-                if discount_type == Sales.DISCOUNT_TYPE_PERCENT:
-                    if discount_value > 100:
-                        raise ValueError('O desconto percentual nao pode ser maior que 100%.')
-                    discount_amount = (computed_sub_total * discount_value) / Decimal('100')
-                else:
-                    if discount_value > computed_sub_total:
-                        raise ValueError('O desconto nao pode ser maior que o subtotal.')
-                    discount_amount = discount_value
-                grand_total = computed_sub_total - discount_amount
-                amount_change = (previous_tendered + tendered_amount) - grand_total
-                if amount_change < 0:
-                    sale_action = 'open_comanda'
-                    if not comanda_code:
-                        comanda_code = generate_comanda_code(customer)
-                elif not any(m in main_payment_methods for m in requested_payment_methods):
-                    raise ValueError('Selecione pelo menos uma forma de pagamento principal (Credito, Debito, Pix ou Dinheiro).')
-            else:
-                grand_total = computed_sub_total
-                amount_change = (previous_tendered + tendered_amount) - grand_total
-
-            if existing_sale:
-                sale = existing_sale
-                sale.sub_total = float(computed_sub_total)
-                sale.grand_total = float(grand_total)
-                sale.discount_type = discount_type
-                sale.discount_value = float(discount_value)
-                sale.discount_amount = float(discount_amount)
-                sale.tendered = float(previous_tendered + tendered_amount)
-                sale.amount_change = float(amount_change)
-                sale.payment_methods = payment_methods_value
-                sale.payment_other_detail = payment_other_detail
-                sale.comanda_code = comanda_code
-                sale.customer = customer
-                sale.status = Sales.STATUS_OPEN if sale_action == 'open_comanda' else Sales.STATUS_CLOSED
-                sale.save()
-                try:
-                    logger.info('sale updated id=%s customer_id=%s customer_name=%s user=%s status=%s',
-                                sale.pk,
-                                getattr(sale.customer, 'id', None),
-                                getattr(sale.customer, 'name', None),
-                                sale.user.username if sale.user else None,
-                                sale.status)
-                except Exception:
-                    logger.exception('Failed to log sale after update')
-
-                # Ajuste de estoque por delta entre nova solicitação e itens previamente reservados
-                # Construir mapa de novas quantidades por produto
-                new_items_q = {}
-                for it in sale_items_payload:
-                    pid = int(getattr(it['product'], 'id', getattr(it['product'], 'pk', 0)))
-                    new_items_q[pid] = new_items_q.get(pid, 0) + int(it['qty'])
-                try:
-                    logger.info('save_pos new_items_q=%s for sale_payload_count=%s', new_items_q, len(sale_items_payload))
-                except Exception:
-                    pass
-
-                # Aplicar deltas (novo - anterior) sobre o estoque atual com locks
-                all_pids = set(list(prev_items_q.keys()) + list(new_items_q.keys()))
-                for pid in all_pids:
-                    prev_q = int(prev_items_q.get(pid, 0))
-                    new_q = int(new_items_q.get(pid, 0))
-                    delta = new_q - prev_q
-                    try:
-                        logger.info('save_pos computing delta for pid=%s prev_q=%s new_q=%s delta=%s', pid, prev_q, new_q, delta)
-                    except Exception:
-                        pass
-                    if delta == 0:
-                        continue
-                    prod = Products.objects.select_for_update().filter(id=pid).first()
-                    if not prod:
-                        # Produto removido do cadastro entre a validacao e o commit
-                        raise ValueError('Produto referenciado nao existe mais: id=' + str(pid))
-                    if not prod.infinite_stock:
-                        before_qty = int(prod.quantity)
-                        # delta > 0 reduz estoque, delta < 0 aumenta estoque
-                        prod.quantity = int(prod.quantity) - int(delta)
-                        if prod.quantity < 0:
-                            prod.quantity = 0
-                        prod.save(update_fields=['quantity', 'date_updated'])
-                        try:
-                            logger.info('save_pos adjusted product id=%s before=%s after=%s applied_delta=%s', pid, before_qty, prod.quantity, delta)
-                        except Exception:
-                            pass
-
-                # Remover items antigos e gravar os novos
-                sale.salesitems_set.all().delete()
-            else:
-                sale = Sales(
-                    user=request.user,
-                    customer=customer,
-                    code=code,
-                    status=Sales.STATUS_OPEN if sale_action == 'open_comanda' else Sales.STATUS_CLOSED,
-                    comanda_code=comanda_code,
-                    sub_total=float(computed_sub_total),
-                    grand_total=float(grand_total),
-                    discount_type=discount_type,
-                    discount_value=float(discount_value),
-                    discount_amount=float(discount_amount),
-                    tendered=float(tendered_amount),
-                    amount_change=float(amount_change),
-                    payment_methods=payment_methods_value,
-                    payment_other_detail=payment_other_detail,
-                )
-                sale.save()
-                try:
-                    logger.info('sale created id=%s customer_id=%s customer_name=%s user=%s status=%s',
-                                sale.pk,
-                                getattr(sale.customer, 'id', None),
-                                getattr(sale.customer, 'name', None),
-                                sale.user.username if sale.user else None,
-                                sale.status)
-                except Exception:
-                    logger.exception('Failed to log sale after create')
-            sale_id = sale.pk
-
-            # Create new sale items and decrement stock accordingly (only for new sale)
-            try:
-                logger.info('save_pos creating sale items loop for sale_id=%s existing_sale=%s items=%s', sale.id, bool(existing_sale), len(sale_items_payload))
-            except Exception:
-                pass
-            for item in sale_items_payload:
-                si = Salesitems(
+                    raise ValueError('Um dos produtos informados nao esta mais disponivel.')
+                
+                qty_int = int(Decimal(str(quantities[index]).strip()))
+                submitted_price = float(prices[index])
+                total_item = submitted_price * qty_int
+                computed_sub_total += Decimal(str(total_item))
+                
+                sale_item, created = Salesitems.objects.get_or_create(
                     sale_id=sale,
-                    product_id=item['product'],
-                    qty=item['qty'],
-                    price=item['price'],
-                    total_price=item['total']
+                    product_id=product,
+                    defaults={
+                        'price': submitted_price,
+                        'qty': qty_int,
+                        'total_price': total_item,
+                        'qty_baixada': 0
+                    }
                 )
-                si.save()
-                try:
-                    logger.info('save_pos created Salesitems id=%s sale_id=%s product_id=%s qty=%s', si.id, sale.id, getattr(item['product'], 'id', getattr(item['product'], 'pk', None)), item['qty'])
-                except Exception:
-                    pass
+                
+                if not created:
+                    sale_item.qty = qty_int
+                    sale_item.price = submitted_price
+                    sale_item.total_price = total_item
+                
+                if not product.infinite_stock:
+                    diferenca_estoque = sale_item.qty - sale_item.qty_baixada
+                    
+                    if diferenca_estoque > 0:
+                        if product.quantity < diferenca_estoque:
+                            raise ValueError(f'Estoque insuficiente para {product.name}. Restam apenas: {product.quantity}.')
+                        product.quantity -= diferenca_estoque
+                        product.save(update_fields=['quantity', 'date_updated'])
+                        sale_item.qty_baixada = sale_item.qty
+                    
+                    elif diferenca_estoque < 0:
+                        product.quantity += abs(diferenca_estoque)
+                        product.save(update_fields=['quantity', 'date_updated'])
+                        sale_item.qty_baixada = sale_item.qty
+                
+                sale_item.save()
+                itens_enviados_ids.append(sale_item.id)
+            
+            itens_para_remover = Salesitems.objects.filter(sale_id=sale).exclude(id__in=itens_enviados_ids)
+            for item_removido in itens_para_remover:
+                if not item_removido.product_id.infinite_stock:
+                    item_removido.product_id.quantity += item_removido.qty_baixada
+                    item_removido.product_id.save(update_fields=['quantity', 'date_updated'])
+                item_removido.delete()
 
-                if not item['product'].infinite_stock:
-                    # Se estamos atualizando uma comanda existente, o ajuste de estoque
-                    # já foi feito pela lógica de delta acima; evitar decrementar novamente.
-                    if not existing_sale:
-                        # decrement stock by the requested quantity for new sale
-                        item['product'].quantity = int(item['product'].quantity) - int(item['qty'])
-                        if item['product'].quantity < 0:
-                            item['product'].quantity = 0
-                        item['product'].save(update_fields=['quantity', 'date_updated'])
-                    else:
-                        try:
-                            logger.info('save_pos skipped per-item decrement because update already applied deltas for sale_id=%s product_id=%s', sale.id, getattr(item['product'], 'id', getattr(item['product'], 'pk', None)))
-                        except Exception:
-                            pass
-
-        # Log final mapping of sale -> customer before responding
-        try:
-            logger.info('save_pos response preparing sale_id=%s sale_action=%s final_customer_id=%s final_customer_name=%s',
-                        sale_id, sale_action, getattr(sale.customer, 'id', None), getattr(sale.customer, 'name', None))
-        except Exception:
-            logger.exception('Failed to log final save_pos response details')
+            sale.sub_total = float(computed_sub_total)
+            if discount_type == Sales.DISCOUNT_TYPE_PERCENT:
+                discount_amount = (computed_sub_total * discount_value) / Decimal('100')
+            else:
+                discount_amount = discount_value
+                
+            sale.discount_amount = float(discount_amount)
+            sale.grand_total = float(computed_sub_total - discount_amount)
+            
+            if sale_action == 'checkout':
+                sale.tendered = float(parse_decimal_value(existing_sale.tendered if existing_sale else 0) + tendered_amount)
+                sale.amount_change = float(max(Decimal('0'), Decimal(str(sale.tendered)) - Decimal(str(sale.grand_total))))
+                sale.payment_methods = payment_methods_value
+            else:
+                sale.tendered = float(data.get('tendered', 0) or (existing_sale.tendered if existing_sale else 0))
+                sale.amount_change = 0.0
+            
+            sale.save()
+            sale_id = sale.pk
 
         resp['status'] = 'success'
         resp['sale_id'] = sale_id
         resp['sale_action'] = sale_action
-        resp['debug'] = {
-            'sale_id': sale_id,
-            'customer_id': sale.customer.id if sale.customer else None,
-            'customer_name': sale.customer.name if sale.customer else None,
-            'comanda_code': sale.comanda_code,
-            'sale_status': sale.status,
-            'items_count': sale.salesitems_set.count()
-        }
+        
         if sale_action == 'open_comanda':
             resp['msg'] = f'Comanda {comanda_code} salva em aberto com sucesso.'
             messages.success(request, resp['msg'])
         else:
             messages.success(request, "Registro de venda salvo com sucesso.")
+            
     except Exception as e:
         print(f"[SAVE_POS_ERROR] {str(e)}")
         logger.exception('save_pos exception: %s', str(e))
         resp['msg'] = str(e)
         resp['status'] = 'failed'
+        
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
 @login_required

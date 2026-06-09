@@ -399,6 +399,50 @@ class PosBarcodeFlowTests(TestCase):
 		self.assertEqual(Salesitems.objects.get().qty, 2)
 		self.assertEqual(self.product.quantity, 8)
 
+	def test_save_pos_repeated_open_comanda_save_keeps_stock_unchanged(self):
+		self.client.force_login(self.user)
+		customer = Customers.objects.create(name='Cliente Repetido', phone='123456789')
+
+		first_response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sale_action': 'open_comanda',
+				'comanda_code': 'JANSEN-01',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['2'],
+				'price[]': ['10.5'],
+				'customer_id': str(customer.id),
+			},
+		)
+		first_payload = json.loads(first_response.content)
+		sale = Sales.objects.get(id=first_payload['sale_id'])
+
+		second_response = self.client.post(
+			reverse('save-pos'),
+			{
+				'sale_id': str(sale.id),
+				'sale_action': 'open_comanda',
+				'comanda_code': 'JANSEN-01',
+				'product_id[]': [str(self.product.id)],
+				'qty[]': ['5'],
+				'price[]': ['10.5'],
+				'customer_id': str(customer.id),
+			},
+		)
+
+		second_payload = json.loads(second_response.content)
+		sale.refresh_from_db()
+		self.product.refresh_from_db()
+
+		self.assertEqual(first_payload['status'], 'success')
+		self.assertEqual(second_payload['status'], 'success')
+		self.assertEqual(sale.status, Sales.STATUS_OPEN)
+		self.assertEqual(sale.sub_total, 52.5)
+		self.assertEqual(sale.grand_total, 52.5)
+		self.assertEqual(Salesitems.objects.filter(sale_id=sale).count(), 1)
+		self.assertEqual(Salesitems.objects.get(sale_id=sale).qty, 5)
+		self.assertEqual(self.product.quantity, 8)
+
 	def test_save_pos_converts_partial_payment_to_open_comanda_with_outro(self):
 		self.client.force_login(self.user)
 		customer = Customers.objects.create(name='Cliente Teste', phone='123456789')

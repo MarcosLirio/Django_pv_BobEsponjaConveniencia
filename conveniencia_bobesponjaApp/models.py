@@ -10,7 +10,6 @@ class Categorys(models.Model):
     status= models.IntegerField(default=1)
     date_added = models.DateTimeField(default=timezone.now)
     date_updated = models.DateTimeField(auto_now=True)
-    
 
 
     def __str__(self):
@@ -101,11 +100,14 @@ class Salesitems(models.Model):
     product_id = models.ForeignKey(Products, on_delete=models.CASCADE)
     price = models.FloatField(default=0)
     qty = models.IntegerField(default=0)
+    # NOVO CAMPO: Guarda quanto dessa quantidade já saiu do estoque
+    qty_baixada = models.IntegerField(default=0)  
     total_price = models.FloatField(default=0)
 
     @property
     def total(self):
         return self.total_price
+
 
 
 class Suppliers(models.Model):
@@ -179,4 +181,3 @@ class FinanceReminders(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
     date_added = models.DateTimeField(default=timezone.now)
     date_updated = models.DateTimeField(auto_now=True)
-    
