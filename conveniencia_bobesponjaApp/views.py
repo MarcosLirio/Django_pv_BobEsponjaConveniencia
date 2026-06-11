@@ -1092,13 +1092,25 @@ def cash_closing(request):
     day_start = datetime.combine(target_date, datetime.min.time())
     day_end = datetime.combine(target_date, datetime.max.time())
 
-    sales_qs = Sales.objects.filter(status=Sales.STATUS_CLOSED, date_added__gte=day_start, date_added__lte=day_end)
+    # Inclui tanto vendas fechadas quanto comandas em aberto (mas deduplica por sale_id)
+    sales_qs = Sales.objects.filter(date_added__gte=day_start, date_added__lte=day_end)
     if not request.user.is_superuser:
         sales_qs = sales_qs.filter(user=request.user)
 
-    total_sales_count = sales_qs.count()
-    total_closed_amount = sales_qs.aggregate(v=Sum('grand_total'))['v'] or 0
-    total_received_amount = sales_qs.aggregate(v=Sum('tendered'))['v'] or 0
+    # Deduplica por sale_id mantendo a última versão
+    sales_dict = {}
+    for sale in sales_qs:
+        if sale.id not in sales_dict:
+            sales_dict[sale.id] = sale
+        else:
+            if sale.date_updated > sales_dict[sale.id].date_updated:
+                sales_dict[sale.id] = sale
+    
+    dedup_sales = list(sales_dict.values())
+
+    total_sales_count = len([s for s in dedup_sales if s.status == Sales.STATUS_CLOSED])
+    total_closed_amount = sum(s.grand_total for s in dedup_sales if s.status == Sales.STATUS_CLOSED) or 0
+    total_received_amount = sum(s.tendered for s in dedup_sales if s.status == Sales.STATUS_CLOSED) or 0
     avg_ticket = (total_closed_amount / total_sales_count) if total_sales_count else 0
 
     open_due_qs = Sales.objects.filter(status=Sales.STATUS_OPEN)
@@ -1115,11 +1127,14 @@ def cash_closing(request):
         'DEBITO': 0,
         'OUTRO': 0,
     }
-    for sale in sales_qs:
+    for sale in dedup_sales:
         methods = [m.strip().upper() for m in (sale.payment_methods or '').split(',') if m.strip()]
         for method in methods:
             if method in payment_breakdown:
                 payment_breakdown[method] += 1
+
+    # Ordenar dedup_sales por date_added descendente para exibição
+    sorted_dedup_sales = sorted(dedup_sales, key=lambda s: s.date_added, reverse=True)[:200]
 
     context = {
         'page_title': 'Fechamento de Caixa',
@@ -1130,7 +1145,7 @@ def cash_closing(request):
         'avg_ticket': avg_ticket,
         'open_due_total': open_due_total,
         'payment_breakdown': payment_breakdown,
-        'sales_rows': sales_qs.order_by('-date_added')[:200],
+        'sales_rows': sorted_dedup_sales,
     }
     return render(request, 'conveniencia/cash_closing.html', context)
 
@@ -1820,11 +1835,37 @@ def save_pos(request):
                                         resp['status'] = 'success'
                                         resp['sale_id'] = existing_id
                                         resp['sale_action'] = 'checkout'
-                                        resp['msg'] = 'Operação já registrada (idempotency_key).' 
+                                        resp['msg'] = 'Operação já registrada (idempotency_key).'
                                         return HttpResponse(json.dumps(resp), content_type='application/json')
                                 except Exception:
-                                    # Se falhar ao decodificar, apenas seguir
                                     pass
+                # Fallback: comparar com vendas recentes com mesmo conjunto de items (caso arquivo não exista ainda)
+                product_ids_preview = data.getlist('product_id[]') if hasattr(data, 'getlist') else []
+                quantities_preview = data.getlist('qty[]') if hasattr(data, 'getlist') else []
+                prices_preview = data.getlist('price[]') if hasattr(data, 'getlist') else []
+                if product_ids_preview:
+                    try:
+                        from datetime import timedelta
+                        cutoff = timezone.now() - timedelta(seconds=120)
+                        recent_sales = Sales.objects.filter(user=request.user, date_added__gte=cutoff)
+                        requested_items = []
+                        for idx, pid in enumerate(product_ids_preview):
+                            try:
+                                requested_items.append((int(pid), int(Decimal(str(quantities_preview[idx]).strip())), float(prices_preview[idx])))
+                            except Exception:
+                                continue
+                        for rs in recent_sales:
+                            rs_items = list(Salesitems.objects.filter(sale_id=rs).values_list('product_id__id', 'qty', 'price'))
+                            # normalizar tipos
+                            rs_items_norm = [(int(i[0]), int(i[1]), float(i[2])) for i in rs_items]
+                            if sorted(rs_items_norm) == sorted(requested_items):
+                                resp['status'] = 'success'
+                                resp['sale_id'] = rs.id
+                                resp['sale_action'] = 'checkout'
+                                resp['msg'] = 'Operação já registrada (recent sales match).'
+                                return HttpResponse(json.dumps(resp), content_type='application/json')
+                    except Exception:
+                        logger.exception('Erro no fallback de idempotency por vendas recentes')
             except Exception:
                 logger.exception('Erro ao checar idempotency_key pre-existente')
 
@@ -2139,16 +2180,25 @@ def salesList(request):
 
     if open_comandas:
         sales_queryset = sales_queryset.filter(status=Sales.STATUS_OPEN).exclude(comanda_code__isnull=True).exclude(comanda_code='')
-    else:
-        # Por padrão relatórios consideram apenas vendas fechadas para evitar incluir alterações em comandas em aberto
-        sales_queryset = sales_queryset.filter(status=Sales.STATUS_CLOSED)
 
     sales_queryset = sales_queryset.order_by('-date_added')
+
+    # Deduplica por sale_id: mantém apenas a última versão de cada comanda (maior date_updated)
+    sale_dict = {}
+    for sale in sales_queryset:
+        if sale.id not in sale_dict:
+            sale_dict[sale.id] = sale
+        else:
+            if sale.date_updated > sale_dict[sale.id].date_updated:
+                sale_dict[sale.id] = sale
+    
+    # Reconstrói lista ordenada pela date_added da versão selecionada
+    sales_for_processing = sorted(sale_dict.values(), key=lambda s: s.date_added, reverse=True)
 
     sale_data = []
     total_value = Decimal('0')
     total_open_comandas = 0
-    for sale in sales_queryset:
+    for sale in sales_for_processing:
         data = {}
         for field in sale._meta.get_fields(include_parents=False):
             if field.related_model is None:
