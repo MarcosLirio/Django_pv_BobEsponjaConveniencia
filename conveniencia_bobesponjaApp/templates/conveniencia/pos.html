@@ -1286,6 +1286,20 @@
                 _this[0].reportValidity()
                 return false
             }
+            // Gera/insere idempotency_key para checkout para prevenir double-submit do cliente
+            try {
+                if (saleAction === 'checkout') {
+                    var idKeyEl = _this.find('[name="idempotency_key"]')
+                    if (idKeyEl.length === 0) {
+                        var key = new Date().toISOString() + '-' + Math.random().toString(36).slice(2,10)
+                        $('<input>').attr({type: 'hidden', name: 'idempotency_key', value: key}).appendTo(_this)
+                    } else if (!idKeyEl.val()) {
+                        idKeyEl.val(new Date().toISOString() + '-' + Math.random().toString(36).slice(2,10))
+                    }
+                }
+            } catch (e) {
+                console.warn('idempotency_key generation failed', e)
+            }
             start_loader()
             $.ajax({
                 headers: {
