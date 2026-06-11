@@ -737,9 +737,18 @@
             return
         }
 
-        // Há comanda aberta com itens: pede confirmação antes de trocar
+        // Se ambas são comandas já salvas em aberto, trocar sem pedir confirmacao
         var targetComanda = openComandasMap[String(targetComandaId)]
         var currentCode = String($('[name="comanda_code"]').val() || '').trim()
+        var currentIsOpenSaved = currentSaleId && openComandasMap[String(currentSaleId)]
+        var targetIsOpenSaved = targetComanda && true
+        if (currentIsOpenSaved && targetIsOpenSaved) {
+            // Troca direta sem confirmacao, somente mostra a comanda selecionada
+            proceedLoadOpenComanda(targetComandaId)
+            return
+        }
+
+        // Há comanda aberta com itens: pede confirmação antes de trocar
         if (confirm('Deseja trocar da comanda ' + currentCode + ' para ' + targetComanda.comanda_code + '?\n\nVocê precisa salvar a comanda ' + currentCode + ' manualmente antes de trocar!') !== true) {
             return false
         }

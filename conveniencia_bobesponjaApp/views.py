@@ -1805,6 +1805,29 @@ def save_pos(request):
         except Exception:
             idempotency_key = None
 
+        # Se veio idempotency_key e é checkout, checar se já existe uma gravação com essa chave
+        if idempotency_key and sale_action == 'checkout':
+            try:
+                file_path = os.path.join(logs_dir, 'comandas_updates.jsonl')
+                if os.path.exists(file_path):
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        for line in reversed(list(f)):
+                            if f'"idempotency_key": "{idempotency_key}"' in line:
+                                try:
+                                    entry = json.loads(line)
+                                    existing_id = entry.get('sale_id')
+                                    if existing_id:
+                                        resp['status'] = 'success'
+                                        resp['sale_id'] = existing_id
+                                        resp['sale_action'] = 'checkout'
+                                        resp['msg'] = 'Operação já registrada (idempotency_key).' 
+                                        return HttpResponse(json.dumps(resp), content_type='application/json')
+                                except Exception:
+                                    # Se falhar ao decodificar, apenas seguir
+                                    pass
+            except Exception:
+                logger.exception('Erro ao checar idempotency_key pre-existente')
+
         with transaction.atomic():
 
             if existing_sale:
@@ -1868,22 +1891,28 @@ def save_pos(request):
                         qty_baixada=0
                     )
                 
-                # Controle de Estoque à prova de falhas
+                # Controle de Estoque: só altera estoque físico no momento do checkout
                 if not product.infinite_stock:
                     diferenca_estoque = sale_item.qty - old_qty_baixada
-                    
-                    if diferenca_estoque > 0:
-                        if product.quantity < diferenca_estoque:
-                            raise ValueError(f'Estoque insuficiente para {product.name}. Restam apenas: {product.quantity}.')
-                        product.quantity -= diferenca_estoque
-                        product.save(update_fields=['quantity', 'date_updated'])
-                        sale_item.qty_baixada = sale_item.qty
-                        
-                    elif diferenca_estoque < 0:
-                        product.quantity += abs(diferenca_estoque)
-                        product.save(update_fields=['quantity', 'date_updated'])
-                        sale_item.qty_baixada = sale_item.qty
+
+                    if sale_action == 'checkout':
+                        if diferenca_estoque > 0:
+                            if product.quantity < diferenca_estoque:
+                                raise ValueError(f'Estoque insuficiente para {product.name}. Restam apenas: {product.quantity}.')
+                            product.quantity -= diferenca_estoque
+                            product.save(update_fields=['quantity', 'date_updated'])
+                            sale_item.qty_baixada = sale_item.qty
+
+                        elif diferenca_estoque < 0:
+                            product.quantity += abs(diferenca_estoque)
+                            product.save(update_fields=['quantity', 'date_updated'])
+                            sale_item.qty_baixada = sale_item.qty
+                    else:
+                        # Em comanda em aberto não alteramos estoque físico nem marcamos qty_baixada.
+                        # Mantemos o valor prévio de qty_baixada para que a baixa real ocorra apenas no checkout.
+                        sale_item.qty_baixada = old_qty_baixada
                 else:
+                    # Produto com estoque infinito: marca como baixado localmente
                     sale_item.qty_baixada = sale_item.qty
                 
                 sale_item.save()
@@ -2110,6 +2139,9 @@ def salesList(request):
 
     if open_comandas:
         sales_queryset = sales_queryset.filter(status=Sales.STATUS_OPEN).exclude(comanda_code__isnull=True).exclude(comanda_code='')
+    else:
+        # Por padrão relatórios consideram apenas vendas fechadas para evitar incluir alterações em comandas em aberto
+        sales_queryset = sales_queryset.filter(status=Sales.STATUS_CLOSED)
 
     sales_queryset = sales_queryset.order_by('-date_added')
 
